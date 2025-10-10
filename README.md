@@ -1,0 +1,377 @@
+# MCP Server with Django JWT Authentication
+
+This is a FastAPI-based MCP (Model Context Protocol) server that provides secure authentication using JWT tokens from a Django backend with Allauth and SimpleJWT.
+
+## Architecture
+
+```
+┌───────────────┐        ┌───────────────┐         ┌───────────────┐
+│ MCP Client    │───────▶│ MCP Server    │────────▶│ Django Backend│
+│ (e.g. GPT)    │Bearer  │ (FastAPI)     │ JWT     │ (Allauth+DRF) │
+│               │ Token  │               │ Validate│               │
+└───────────────┘        └───────────────┘         └───────────────┘
+```
+
+## Features
+
+- **JWT Authentication**: Validates tokens issued by Django backend using RS256
+- **JWKS Support**: Automatically fetches and caches public keys from Django's JWKS endpoint
+- **User Context**: Attaches authenticated user information to requests
+- **MCP Tools**: Provides authenticated access to Django backend APIs
+- **Caching**: Efficient JWKS key caching with configurable TTL
+- **Error Handling**: Proper OAuth2 error responses
+
+## Setup
+
+### 1. Install Dependencies
+
+```bash
+cd mcp-auth-test
+pip install -e .
+# or using uv
+uv pip install -e .
+```
+
+### 2. Configure Environment
+
+Copy the example environment file and configure it:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your Django backend configuration:
+
+```env
+# Django Backend Configuration
+DJANGO_BASE_URL=http://localhost:8000
+
+# JWT Configuration (these should match your Django settings)
+JWT_AUDIENCE=cccrm-api
+JWT_ISSUER=cccrm-backend
+
+# Optional: Provide static public key (otherwise JWKS will be used)
+# JWT_PUBLIC_KEY=-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----
+
+# Server Configuration
+PORT=10000
+
+# Optional: Tavily API for web search tool
+TAVILY_API_KEY=your-tavily-api-key
+```
+
+### 3. Django Backend Setup
+
+Ensure your Django backend has the following configuration in `settings.py`:
+
+```python
+# JWT Configuration
+SIMPLE_JWT = {
+    'ALGORITHM': 'RS256',
+    'SIGNING_KEY': env('JWT_PRIVATE_KEY'),
+    'VERIFYING_KEY': env('JWT_PUBLIC_KEY'),
+    'AUDIENCE': env('JWT_AUDIENCE', default='cccrm-api'),
+    'ISSUER': env('JWT_ISSUER', default='cccrm-backend'),
+    # ... other settings
+}
+
+# Expose JWKS endpoint
+# Add this URL pattern to expose /.well-known/jwks.json
+```
+
+### 4. Generate JWT Keys (if needed)
+
+If you need to generate RS256 key pairs for your Django backend:
+
+```python
+# generate_jwt_keys.py
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import serialization
+
+# Generate private key
+private_key = rsa.generate_private_key(
+    public_exponent=65537,
+    key_size=2048
+)
+
+# Get public key
+public_key = private_key.public_key()
+
+# Serialize private key
+private_pem = private_key.private_bytes(
+    encoding=serialization.Encoding.PEM,
+    format=serialization.PrivateFormat.PKCS8,
+    encryption_algorithm=serialization.NoEncryption()
+).decode()
+
+# Serialize public key
+public_pem = public_key.public_bytes(
+    encoding=serialization.Encoding.PEM,
+    format=serialization.PublicFormat.SubjectPublicKeyInfo
+).decode()
+
+print("Private Key:")
+print(private_pem)
+print("\nPublic Key:")
+print(public_pem)
+```
+
+## Running the Server
+
+```bash
+# Using the entry point
+mcp-server
+
+# Or directly
+python -m src.server
+
+# Or with uvicorn
+uvicorn src.server:app --host localhost --port 10000 --reload
+```
+
+## Authentication Flow
+
+### 1. User Authentication
+
+Users first authenticate with your Django backend:
+
+```bash
+# Login to get JWT token
+curl -X POST http://localhost:8000/auth/login/ \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "password"}'
+```
+
+Response:
+```json
+{
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...",
+  "refresh_token": "...",
+  "user": {
+    "id": 1,
+    "email": "user@example.com"
+  }
+}
+```
+
+### 2. MCP Client Connection
+
+MCP clients connect to the server with the JWT token:
+
+```bash
+# Example MCP request
+curl -X POST http://localhost:10000/ \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+      "name": "get_user_profile",
+      "arguments": {}
+    }
+  }'
+```
+
+## Available Tools
+
+### 1. `get_user_profile`
+Get the current authenticated user's profile information.
+
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "get_user_profile",
+    "arguments": {}
+  }
+}
+```
+
+### 2. `list_campaigns`
+List all campaigns for the authenticated user.
+
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "list_campaigns",
+    "arguments": {}
+  }
+}
+```
+
+### 3. `create_campaign`
+Create a new campaign for the authenticated user.
+
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "create_campaign",
+    "arguments": {
+      "name": "My New Campaign",
+      "description": "Campaign description"
+    }
+  }
+}
+```
+
+### 4. `get_leads_count`
+Get the total number of leads for the authenticated user.
+
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "get_leads_count",
+    "arguments": {}
+  }
+}
+```
+
+### 5. `search_web` (Optional)
+Search the web using Tavily API (requires TAVILY_API_KEY).
+
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "search_web",
+    "arguments": {
+      "query": "latest news about AI"
+    }
+  }
+}
+```
+
+### 6. `add_numbers`
+Simple demo tool for adding two numbers.
+
+```json
+{
+  "method": "tools/call",
+  "params": {
+    "name": "add_numbers",
+    "arguments": {
+      "a": 5,
+      "b": 3
+    }
+  }
+}
+```
+
+## Security Features
+
+### JWT Validation
+
+- **RS256 Algorithm**: Uses asymmetric cryptography for secure token validation
+- **JWKS Integration**: Automatically fetches public keys from Django's JWKS endpoint
+- **Claim Validation**: Validates issuer, audience, and expiration claims
+- **Caching**: Caches JWKS keys with configurable TTL for performance
+
+### Request Context
+
+The middleware attaches user information to each request:
+
+```python
+request.state.user = {
+    "id": payload.get("user_id"),
+    "email": payload.get("email"),
+    "username": payload.get("username"),
+    "token_type": payload.get("token_type"),
+    "exp": payload.get("exp"),
+    "iat": payload.get("iat"),
+    "jti": payload.get("jti"),
+}
+```
+
+## Error Handling
+
+The server returns proper OAuth2 error responses:
+
+```json
+{
+  "error": "invalid_token",
+  "error_description": "Token has expired"
+}
+```
+
+Common error types:
+- `invalid_token`: Token is malformed, expired, or invalid
+- `insufficient_scope`: Token doesn't have required permissions
+
+## Development
+
+### Adding New Tools
+
+1. Add your tool function to `src/tools.py`:
+
+```python
+@mcp.tool
+async def my_new_tool(request: Request, param1: str, param2: int = 0) -> Dict:
+    """Description of what this tool does"""
+    if not hasattr(request.state, 'user') or not request.state.user:
+        raise Exception("User not authenticated")
+    
+    # Your tool logic here
+    return {"result": "success"}
+```
+
+2. Tools automatically have access to:
+   - `request.state.user`: Authenticated user information
+   - `request.headers.get("Authorization")`: Original JWT token for backend requests
+
+### Testing
+
+```bash
+# Install test dependencies
+pip install pytest httpx pytest-asyncio
+
+# Run tests (when available)
+pytest tests/
+```
+
+## Configuration Reference
+
+| Environment Variable | Description | Default |
+|---------------------|-------------|---------|
+| `DJANGO_BASE_URL` | Base URL of Django backend | `http://localhost:8000` |
+| `JWT_AUDIENCE` | Expected JWT audience claim | `cccrm-api` |
+| `JWT_ISSUER` | Expected JWT issuer claim | `cccrm-backend` |
+| `JWT_PUBLIC_KEY` | Static RSA public key (optional) | - |
+| `JWKS_CACHE_TTL` | JWKS cache TTL in seconds | `3600` |
+| `PORT` | Server port | `10000` |
+| `TAVILY_API_KEY` | Tavily API key for web search | - |
+
+## Troubleshooting
+
+### Common Issues
+
+1. **"Failed to fetch JWKS keys"**
+   - Check that `DJANGO_BASE_URL` is correct
+   - Ensure Django backend is running and accessible
+   - Verify JWKS endpoint is available at `/auth/.well-known/jwks.json`
+
+2. **"Invalid token issuer/audience"**
+   - Ensure `JWT_ISSUER` and `JWT_AUDIENCE` match Django settings
+   - Check that tokens are issued with correct claims
+
+3. **"Token validation failed"**
+   - Verify token is not expired
+   - Check that JWT keys match between Django and MCP server
+   - Ensure RS256 algorithm is used
+
+### Debugging
+
+Enable debug logging:
+
+```python
+import logging
+logging.basicConfig(level=logging.DEBUG)
+```
+
+## License
+
+[Your License Here]
