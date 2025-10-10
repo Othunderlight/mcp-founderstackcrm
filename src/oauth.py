@@ -214,15 +214,29 @@ def create_oauth2_router():
         Handles the callback from Django after Google OAuth completion.
         """
         try:
-            # Handle OAuth errors
+            # Handle OAuth errors first
             if error:
-                logger.error(f"OAuth error: {error} - {error_description}")
-                return JSONResponse(
-                    status_code=400,
-                    content={"error": error, "error_description": error_description}
-                )
-            
-            # Retrieve stored auth request
+                logger.error(f"OAuth error from Django: {error} - {error_description}")
+                
+                # Retrieve the original auth request to get the client's redirect_uri
+                auth_request = AUTHORIZATION_CODES.get(auth_request_id)
+                if not auth_request:
+                    raise HTTPException(status_code=400, detail="Invalid authorization request ID during error handling.")
+
+                # Redirect back to the client's redirect_uri with the error details
+                from urllib.parse import urlencode
+                error_params = {
+                    "error": error,
+                    "error_description": error_description,
+                }
+                if state:
+                    error_params["state"] = state
+                
+                redirect_url = f"{auth_request['redirect_uri']}?{urlencode(error_params)}"
+                
+                return RedirectResponse(url=redirect_url)
+
+            # If no error, proceed with success flow
             auth_request = AUTHORIZATION_CODES.get(auth_request_id)
             if not auth_request:
                 raise HTTPException(status_code=400, detail="Invalid authorization request")
