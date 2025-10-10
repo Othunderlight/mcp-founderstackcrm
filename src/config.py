@@ -5,7 +5,7 @@ load_dotenv()
 
 class Settings:
     # Django JWT Configuration
-    DJANGO_BASE_URL: str = os.environ.get("DJANGO_BASE_URL", "http://localhost:8000")
+    DJANGO_BASE_URL: str = os.environ.get("DJANGO_BASE_URL", "http://127.0.0.1:8000")
     JWT_PUBLIC_KEY: str = os.environ.get("JWT_PUBLIC_KEY", "")
     JWT_AUDIENCE: str = os.environ.get("JWT_AUDIENCE", "cccrm-api")
     JWT_ISSUER: str = os.environ.get("JWT_ISSUER", "cccrm-backend")

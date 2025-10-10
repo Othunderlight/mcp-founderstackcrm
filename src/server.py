@@ -52,7 +52,7 @@ async def oauth_protected_resource_metadata():
         return response
     else:
         # Default metadata response with OAuth2 support
-        base_url = f"http://localhost:{settings.PORT}"
+        base_url = f"http://127.0.0.1:{settings.PORT}"
         return {
             "resource_server_metadata": {
                 "resource_identifier": "cccrm-api",
@@ -79,7 +79,7 @@ app.mount("/", mcp_server)
 
 def main():
     """Main entry point for the MCP server."""
-    uvicorn.run(app, host="localhost", port=settings.PORT, log_level="debug")
+    uvicorn.run(app, host="127.0.0.1", port=settings.PORT, log_level="debug")
 
 if __name__ == "__main__":
     main()

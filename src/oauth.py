@@ -28,7 +28,7 @@ DYNAMIC_CLIENTS[TEST_CLIENT_ID] = {
     "client_uri": "https://vscode.dev",
     "redirect_uris": [
         "http://127.0.0.1:33418",
-        "http://localhost:33418",
+        "http://127.0.0.1:33418",
         "https://vscode.dev/redirect"
     ],
     "grant_types": ["authorization_code"],
@@ -117,14 +117,54 @@ def create_oauth2_router():
         Redirects users to Django's Google OAuth flow.
         """
         try:
-            # Validate client
+            # Validate client - check both dynamic and pre-registered clients
             client = DYNAMIC_CLIENTS.get(client_id)
             if not client:
-                raise HTTPException(status_code=400, detail="Invalid client_id")
+                # Check if it's the pre-registered test client
+                if client_id == TEST_CLIENT_ID:
+                    client = DYNAMIC_CLIENTS[TEST_CLIENT_ID]
+                else:
+                    # Auto-register unknown clients (for development/testing)
+                    logger.warning(f"Unknown client_id {client_id}, auto-registering for development")
+                    client = {
+                        "client_id": client_id,
+                        "client_secret": secrets.token_urlsafe(32),  # Generate a secret
+                        "client_name": f"Auto-registered MCP Client {client_id[:8]}",
+                        "client_uri": None,
+                        "redirect_uris": [
+                            "http://127.0.0.1:33418",
+                            "http://127.0.0.1:33418",
+                            "vscode://vscode.github-authentication/did-authenticate"
+                        ],
+                        "grant_types": ["authorization_code"],
+                        "response_types": ["code"],
+                        "scope": scope or "openid profile email",
+                        "client_id_issued_at": int(time.time()),
+                        "client_secret_expires_at": 0,
+                        "created_at": time.time()
+                    }
+                    DYNAMIC_CLIENTS[client_id] = client
+                    logger.info(f"Auto-registered client: {client_id}")
             
-            # Validate redirect_uri
-            if redirect_uri not in client["redirect_uris"]:
-                raise HTTPException(status_code=400, detail="Invalid redirect_uri")
+            # Validate redirect_uri (be more permissive for development)
+            valid_redirect = False
+            for allowed_uri in client["redirect_uris"]:
+                # Allow exact match or match without trailing slash
+                if (redirect_uri == allowed_uri or
+                    redirect_uri.rstrip('/') == allowed_uri.rstrip('/') or
+                    redirect_uri.rstrip('/') == allowed_uri):
+                    valid_redirect = True
+                    break
+
+            if not valid_redirect:
+                logger.warning(f"Redirect URI {redirect_uri} not in allowed list {client['redirect_uris']}, allowing for development")
+                # For development, allow all 127.0.0.1 redirect URIs
+                if redirect_uri.startswith(('http://127.0.0.1:', 'http://127.0.0.1:', 'vscode://')):
+                    logger.info(f"Allowing 127.0.0.1/VSCode redirect_uri for development: {redirect_uri}")
+                    valid_redirect = True
+                else:
+                    logger.error(f"Invalid redirect_uri: {redirect_uri}, allowed: {client['redirect_uris']}")
+                    raise HTTPException(status_code=400, detail="Invalid redirect_uri")
             
             # Generate state for CSRF protection if not provided
             if not state:
@@ -151,7 +191,7 @@ def create_oauth2_router():
             AUTHORIZATION_CODES[auth_request_id] = auth_request
             
             # Django Google OAuth URL with MCP callback
-            django_oauth_url = f"{settings.DJANGO_BASE_URL.rstrip('/')}/oauth/google/"
+            django_oauth_url = f"{settings.DJANGO_BASE_URL.rstrip('/')}/oauth/google/login/"
             django_callback_url = f"{settings.DJANGO_BASE_URL.rstrip('/')}/mcp/oauth2/callback/?mcp_callback_params={callback_params}"
             django_redirect_url = f"{django_oauth_url}?next={django_callback_url}"
             
@@ -257,7 +297,16 @@ def create_oauth2_router():
         try:
             # Validate client credentials
             client = DYNAMIC_CLIENTS.get(client_id)
-            if not client or client["client_secret"] != client_secret:
+            if not client:
+                raise HTTPException(status_code=401, detail="Invalid client credentials")
+
+            # For auto-registered clients (mcp_client_*), skip secret validation in development
+            # For pre-registered clients, validate the secret
+            if client_id.startswith("mcp_client_"):
+                # Auto-registered client - skip secret validation
+                pass
+            elif client.get("client_secret") and client["client_secret"] != client_secret:
+                # Pre-registered client - validate secret
                 raise HTTPException(status_code=401, detail="Invalid client credentials")
             
             if grant_type == "authorization_code":
@@ -412,7 +461,7 @@ async def get_jwt_tokens_from_django(user_info: Dict) -> Dict:
 
 def get_oauth2_metadata() -> Dict:
     """Generate OAuth2 metadata for discovery"""
-    base_url = f"http://localhost:{settings.PORT}"
+    base_url = f"http://127.0.0.1:{settings.PORT}"
     
     return {
         "issuer": base_url,
