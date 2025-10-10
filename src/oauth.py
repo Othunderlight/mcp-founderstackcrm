@@ -182,20 +182,14 @@ def create_oauth2_router():
                 "created_at": time.time()
             }
             
-            # Build Django OAuth URL with proper callback
-            callback_params = f"auth_request_id={auth_request_id}"
-            if state:
-                callback_params += f"&state={state}"
-            
             # Store auth request for callback
             AUTHORIZATION_CODES[auth_request_id] = auth_request
-            
-            # Django Google OAuth URL with MCP callback
-            django_oauth_url = f"{settings.DJANGO_BASE_URL.rstrip('/')}/oauth/google/login/"
-            django_callback_url = f"{settings.DJANGO_BASE_URL.rstrip('/')}/mcp/oauth2/callback/?mcp_callback_params={callback_params}"
-            django_redirect_url = f"{django_oauth_url}?next={django_callback_url}"
-            
-            logger.info(f"Redirecting client {client_id} to Django OAuth: {django_redirect_url}")
+
+            # New: Build the URL for our custom Django "bridge" view
+            django_bridge_url = f"{settings.DJANGO_BASE_URL.rstrip('/')}/mcp/google-login/"
+            django_redirect_url = f"{django_bridge_url}?auth_request_id={auth_request_id}&state={state}"
+
+            logger.info(f"Redirecting client {client_id} to Django bridge for OAuth: {django_redirect_url}")
             
             return RedirectResponse(url=django_redirect_url, status_code=302)
             
