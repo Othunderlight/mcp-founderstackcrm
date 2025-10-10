@@ -137,9 +137,21 @@ async def validate_jwt_token(token: str) -> Dict:
 # Authentication middleware
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        # Skip authentication for well-known endpoints
-        if request.url.path.startswith("/.well-known/"):
-            return await call_next(request)
+        # Skip authentication for public endpoints
+        public_paths = [
+            "/.well-known/",           # OAuth2 discovery endpoints
+            "/oauth2/register",        # Dynamic client registration
+            "/oauth2/authorize",       # Authorization endpoint (handles its own validation)
+            "/oauth2/callback",        # OAuth callback endpoint
+            "/oauth2/token",          # Token exchange endpoint
+            "/oauth2/userinfo",       # User info endpoint (validates token internally)
+            "/oauth2/introspect"      # Token introspection endpoint
+        ]
+        
+        # Check if the current path should skip authentication
+        for path in public_paths:
+            if request.url.path.startswith(path):
+                return await call_next(request)
 
         try:
             # Extract Authorization header

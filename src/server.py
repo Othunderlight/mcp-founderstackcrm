@@ -61,8 +61,14 @@ async def oauth_protected_resource_metadata():
                 "jwks_uri": settings.JWKS_URL,
                 "audience": settings.JWT_AUDIENCE,
                 "issuer": settings.JWT_ISSUER,
-                "oauth2_dynamic_registration": True,
-                "registration_endpoint": f"{base_url}/oauth2/register"
+                "oauth2_dynamic_registration_supported": True,
+                "registration_endpoint": f"{base_url}/oauth2/register",
+                "mcp_version": "1.0",
+                "mcp_capabilities": {
+                    "dynamic_client_registration": True,
+                    "pkce_support": True,
+                    "google_oauth_integration": True
+                }
             }
         }
 

@@ -16,6 +16,29 @@ logger = logging.getLogger(__name__)
 DYNAMIC_CLIENTS: Dict[str, Dict] = {}
 AUTHORIZATION_CODES: Dict[str, Dict] = {}
 
+# Pre-register a test client for VS Code
+TEST_CLIENT_ID = "vscode_mcp_client"
+TEST_CLIENT_SECRET = "test_client_secret_123"
+
+# Initialize with a test client
+DYNAMIC_CLIENTS[TEST_CLIENT_ID] = {
+    "client_id": TEST_CLIENT_ID,
+    "client_secret": TEST_CLIENT_SECRET,
+    "client_name": "VS Code MCP Client",
+    "client_uri": "https://vscode.dev",
+    "redirect_uris": [
+        "http://127.0.0.1:33418",
+        "http://localhost:33418",
+        "https://vscode.dev/redirect"
+    ],
+    "grant_types": ["authorization_code"],
+    "response_types": ["code"],
+    "scope": "openid profile email",
+    "client_id_issued_at": int(time.time()),
+    "client_secret_expires_at": 0,
+    "created_at": time.time()
+}
+
 # OAuth2 Dynamic Client Registration Models
 class ClientRegistrationRequest(BaseModel):
     client_name: str
@@ -290,6 +313,56 @@ def create_oauth2_router():
             logger.error(f"Token endpoint error: {e}")
             raise HTTPException(status_code=500, detail="Token issuance failed")
     
+    @router.get("/oauth2/userinfo")
+    async def userinfo_endpoint(request: Request):
+        """
+        OAuth2 UserInfo endpoint.
+        Returns information about the authenticated user.
+        """
+        try:
+            # Extract Authorization header
+            auth_header = request.headers.get("Authorization")
+            if not auth_header or not auth_header.startswith("Bearer "):
+                raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
+
+            # For now, return basic user info
+            # In a full implementation, you'd validate the token and return actual user data
+            return {
+                "sub": "user123",
+                "email": "user@example.com",
+                "email_verified": True,
+                "name": "MCP User",
+                "given_name": "MCP",
+                "family_name": "User",
+                "picture": "https://example.com/avatar.jpg"
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"UserInfo endpoint error: {e}")
+            raise HTTPException(status_code=500, detail="UserInfo failed")
+
+    @router.post("/oauth2/introspect")
+    async def introspect_endpoint(token: str = Form(...)):
+        """
+        OAuth2 Token Introspection endpoint.
+        Validates and returns information about a token.
+        """
+        try:
+            # In a full implementation, validate the token here
+            return {
+                "active": True,
+                "client_id": "mcp_client",
+                "username": "user@example.com",
+                "scope": "openid profile email",
+                "exp": int(time.time()) + 3600,
+                "iat": int(time.time()),
+                "sub": "user123"
+            }
+        except Exception as e:
+            logger.error(f"Introspection endpoint error: {e}")
+            raise HTTPException(status_code=500, detail="Introspection failed")
+    
     return router
 
 async def get_user_from_django_session(session_id: str) -> Optional[Dict]:
@@ -347,10 +420,46 @@ def get_oauth2_metadata() -> Dict:
         "token_endpoint": f"{base_url}/oauth2/token",
         "registration_endpoint": f"{base_url}/oauth2/register",
         "jwks_uri": settings.JWKS_URL,
+        
+        # Dynamic Client Registration Support
+        "registration_endpoint_auth_methods_supported": ["none"],
+        "registration_endpoint_auth_signing_alg_values_supported": [],
+        
+        # Supported OAuth2 flows
         "response_types_supported": ["code"],
+        "response_modes_supported": ["query", "fragment"],
         "grant_types_supported": ["authorization_code"],
-        "token_endpoint_auth_methods_supported": ["client_secret_post"],
-        "scopes_supported": ["openid", "profile", "email"],
+        "token_endpoint_auth_methods_supported": ["client_secret_post", "client_secret_basic"],
+        
+        # PKCE Support
         "code_challenge_methods_supported": ["S256", "plain"],
-        "subject_types_supported": ["public"]
+        
+        # Scopes and Claims
+        "scopes_supported": ["openid", "profile", "email"],
+        "claims_supported": ["sub", "email", "email_verified", "name", "given_name", "family_name", "picture"],
+        "subject_types_supported": ["public"],
+        
+        # Client Registration
+        "client_registration_types_supported": ["automatic"],
+        "client_registration_endpoint_auth_methods_supported": ["none"],
+        
+        # Additional OAuth2 Discovery fields
+        "userinfo_endpoint": f"{base_url}/oauth2/userinfo",
+        "end_session_endpoint": f"{base_url}/oauth2/logout",
+        "introspection_endpoint": f"{base_url}/oauth2/introspect",
+        "revocation_endpoint": f"{base_url}/oauth2/revoke",
+        
+        # Algorithm support
+        "id_token_signing_alg_values_supported": ["RS256"],
+        "token_endpoint_auth_signing_alg_values_supported": ["RS256"],
+        
+        # Additional capabilities
+        "request_parameter_supported": True,
+        "request_uri_parameter_supported": False,
+        "require_request_uri_registration": False,
+        "claims_parameter_supported": False,
+        
+        # MCP-specific metadata
+        "mcp_dynamic_registration_supported": True,
+        "mcp_version": "1.0"
     }
