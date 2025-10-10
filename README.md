@@ -5,13 +5,13 @@ This is a FastAPI-based MCP (Model Context Protocol) server that provides secure
 ## Architecture
 
 ```
-┌───────────────┐    OAuth2   ┌───────────────┐   Google   ┌───────────────┐         ┌───────────────┐
-│ MCP Client    │────────────▶│ MCP Server    │───────────▶│ Django Backend│────────▶│ Google OAuth  │
-│ (e.g. GPT)    │ Register+   │ (FastAPI)     │ Redirect   │ (Allauth+DRF) │ OAuth   │ Provider      │
-│               │ Authorize   │               │            │               │         │               │
-└───────────────┘             └───────────────┘            └───────────────┘         └───────────────┘
+┌───────────────┐    OAuth2    ┌───────────────┐   Google    ┌───────────────┐           ┌───────────────┐
+│ MCP Client    │────────────▶│ MCP Server    │───────────▶│ Django Backend│ ────────▶│ Google OAuth  │
+│ (e.g. GPT)    │ Register+    │ (FastAPI)     │ Redirect    │ (Allauth+DRF) │ OAuth     │ Provider      │
+│               │ Authorize    │               │             │               │           │               │
+└───────────────┘              └───────────────┘             └───────────────┘           └───────────────┘
         │                             │                             │                         │
-        │         JWT Access Token    │      JWT Token Exchange     │    User Info + Session │
+        │         JWT Access Token    │      JWT Token Exchange     │    User Info + Session  │
         └─────────────────────────────┼─────────────────────────────┼─────────────────────────┘
                                       │                             │
                                       └─────────────────────────────┘
