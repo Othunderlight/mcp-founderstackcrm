@@ -1,25 +1,34 @@
-# MCP Server with Django JWT Authentication
+# MCP Server with Django JWT Authentication & OAuth2
 
-This is a FastAPI-based MCP (Model Context Protocol) server that provides secure authentication using JWT tokens from a Django backend with Allauth and SimpleJWT.
+This is a FastAPI-based MCP (Model Context Protocol) server that provides secure authentication using JWT tokens from a Django backend with Allauth and SimpleJWT. It supports **OAuth2 Dynamic Client Registration** with automatic Google OAuth flow.
 
 ## Architecture
 
 ```
-┌───────────────┐        ┌───────────────┐         ┌───────────────┐
-│ MCP Client    │───────▶│ MCP Server    │────────▶│ Django Backend│
-│ (e.g. GPT)    │Bearer  │ (FastAPI)     │ JWT     │ (Allauth+DRF) │
-│               │ Token  │               │ Validate│               │
-└───────────────┘        └───────────────┘         └───────────────┘
+┌───────────────┐    OAuth2   ┌───────────────┐   Google   ┌───────────────┐         ┌───────────────┐
+│ MCP Client    │────────────▶│ MCP Server    │───────────▶│ Django Backend│────────▶│ Google OAuth  │
+│ (e.g. GPT)    │ Register+   │ (FastAPI)     │ Redirect   │ (Allauth+DRF) │ OAuth   │ Provider      │
+│               │ Authorize   │               │            │               │         │               │
+└───────────────┘             └───────────────┘            └───────────────┘         └───────────────┘
+        │                             │                             │                         │
+        │         JWT Access Token    │      JWT Token Exchange     │    User Info + Session │
+        └─────────────────────────────┼─────────────────────────────┼─────────────────────────┘
+                                      │                             │
+                                      └─────────────────────────────┘
+                                             API Calls with JWT
 ```
 
 ## Features
 
+- **OAuth2 Dynamic Client Registration**: Automatic client registration for MCP clients
+- **Google OAuth Integration**: Seamless authentication via Django's Google OAuth flow
 - **JWT Authentication**: Validates tokens issued by Django backend using RS256
 - **JWKS Support**: Automatically fetches and caches public keys from Django's JWKS endpoint
 - **User Context**: Attaches authenticated user information to requests
 - **MCP Tools**: Provides authenticated access to Django backend APIs
 - **Caching**: Efficient JWKS key caching with configurable TTL
 - **Error Handling**: Proper OAuth2 error responses
+- **Standards Compliant**: Full OAuth2 authorization code flow with PKCE support
 
 ## Setup
 
@@ -96,6 +105,182 @@ private_key = rsa.generate_private_key(
 
 # Get public key
 public_key = private_key.public_key()
+
+
+## OAuth2 Dynamic Client Registration
+
+The MCP server supports OAuth2 Dynamic Client Registration, allowing clients to automatically register and authenticate users via Google OAuth through Django.
+
+### OAuth2 Flow
+
+```
+1. Client Registration
+   MCP Client ──────────POST /oauth2/register──────────▶ MCP Server
+                                                           │
+                                                           ▼
+                                                      Generate client_id/secret
+                                                           │
+                                                           ▼
+   MCP Client ◀──────────client_id + client_secret───────┘
+
+2. Authorization Request  
+   MCP Client ──────────GET /oauth2/authorize─────────▶ MCP Server
+                                                           │
+                                                           ▼
+                                                      Redirect to Django
+                                                           │
+                                                           ▼
+   User Browser ────────/oauth/google/?next=callback──▶ Django Backend
+                                                           │
+                                                           ▼
+                                                      Google OAuth
+                                                           │
+                                                           ▼
+   User Browser ◀──────────Google Login Page──────────── Google
+                                                           │
+                                                           ▼
+                                                      User authenticates
+                                                           │
+                                                           ▼
+   User Browser ─────────Callback with auth code──────▶ Django Backend
+                                                           │
+                                                           ▼
+                                                      Django callback
+                                                           │
+                                                           ▼
+   User Browser ─────────Redirect to MCP callback─────▶ MCP Server
+                                                           │
+                                                           ▼
+                                                      Generate auth code
+                                                           │
+                                                           ▼
+   MCP Client ◀─────────Authorization code─────────────── MCP Server
+
+3. Token Exchange
+   MCP Client ──────────POST /oauth2/token────────────▶ MCP Server
+                           (auth code + client creds)      │
+                                                           ▼
+                                                      Call Django for JWT
+                                                           │
+                                                           ▼
+   MCP Client ◀─────────JWT Access Token──────────────── MCP Server
+```
+
+### OAuth2 Endpoints
+
+#### 1. Dynamic Client Registration
+
+```http
+POST /oauth2/register
+Content-Type: application/json
+
+{
+  "client_name": "My MCP Client",
+  "client_uri": "https://example.com",
+  "redirect_uris": ["https://example.com/callback"],
+  "grant_types": ["authorization_code"],
+  "response_types": ["code"],
+  "scope": "openid profile email"
+}
+```
+
+**Response:**
+```json
+{
+  "client_id": "mcp_client_abc123...",
+  "client_secret": "secret_xyz789...",
+  "client_name": "My MCP Client",
+  "redirect_uris": ["https://example.com/callback"],
+  "grant_types": ["authorization_code"],
+  "response_types": ["code"],
+  "scope": "openid profile email",
+  "client_id_issued_at": 1699123456,
+  "client_secret_expires_at": 0
+}
+```
+
+#### 2. Authorization Request
+
+```http
+GET /oauth2/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope=openid%20profile%20email&state={state}&code_challenge={challenge}&code_challenge_method=S256
+```
+
+This will redirect the user to:
+```
+Django: /oauth/google/?next=/mcp/oauth2/callback/?mcp_callback_params=...
+```
+
+#### 3. Token Exchange
+
+```http
+POST /oauth2/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code&
+client_id={client_id}&
+client_secret={client_secret}&
+code={authorization_code}&
+redirect_uri={redirect_uri}&
+code_verifier={verifier}
+```
+
+**Response:**
+```json
+{
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "scope": "openid profile email",
+  "refresh_token": "refresh_token_here..."
+}
+```
+
+### OAuth2 Discovery
+
+#### Authorization Server Metadata
+
+```http
+GET /.well-known/oauth-authorization-server
+```
+
+**Response:**
+```json
+{
+  "issuer": "http://localhost:10000",
+  "authorization_endpoint": "http://localhost:10000/oauth2/authorize",
+  "token_endpoint": "http://localhost:10000/oauth2/token",
+  "registration_endpoint": "http://localhost:10000/oauth2/register",
+  "jwks_uri": "http://localhost:8000/auth/.well-known/jwks.json",
+  "response_types_supported": ["code"],
+  "grant_types_supported": ["authorization_code"],
+  "token_endpoint_auth_methods_supported": ["client_secret_post"],
+  "scopes_supported": ["openid", "profile", "email"],
+  "code_challenge_methods_supported": ["S256", "plain"],
+  "subject_types_supported": ["public"]
+}
+```
+
+#### Resource Server Metadata
+
+```http
+GET /.well-known/oauth-protected-resource/mcp
+```
+
+**Response:**
+```json
+{
+  "resource_server_metadata": {
+    "resource_identifier": "cccrm-api",
+    "authorization_servers": ["http://localhost:10000"],
+    "authorization_server_metadata_url": "http://localhost:10000/.well-known/oauth-authorization-server",
+    "jwks_uri": "http://localhost:8000/auth/.well-known/jwks.json",
+    "audience": "cccrm-api",
+    "issuer": "cccrm-backend",
+    "oauth2_dynamic_registration": true,
+    "registration_endpoint": "http://localhost:10000/oauth2/register"
+  }
+}
+```
 
 # Serialize private key
 private_pem = private_key.private_bytes(

@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .auth import AuthMiddleware
 from .config import settings
 from .tools import mcp as tools_server
+from .oauth import create_oauth2_router, get_oauth2_metadata
 import json
 
 # Create a combined lifespan to manage the MCP session manager
@@ -26,6 +27,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include OAuth2 router
+oauth2_router = create_oauth2_router()
+app.include_router(oauth2_router, prefix="", tags=["oauth2"])
+
+# OAuth2 Authorization Server Metadata endpoint
+@app.get("/.well-known/oauth-authorization-server")
+async def oauth_authorization_server_metadata():
+    """
+    OAuth 2.0 Authorization Server Metadata endpoint.
+    Provides OAuth2 configuration for dynamic client registration and authorization.
+    """
+    return get_oauth2_metadata()
+
 # MCP well-known endpoint
 @app.get("/.well-known/oauth-protected-resource/mcp")
 async def oauth_protected_resource_metadata():
@@ -37,14 +51,18 @@ async def oauth_protected_resource_metadata():
         response = json.loads(settings.METADATA_JSON_RESPONSE)
         return response
     else:
-        # Default metadata response for Django JWT authentication
+        # Default metadata response with OAuth2 support
+        base_url = f"http://localhost:{settings.PORT}"
         return {
             "resource_server_metadata": {
                 "resource_identifier": "cccrm-api",
-                "authorization_servers": [settings.DJANGO_BASE_URL],
+                "authorization_servers": [base_url],
+                "authorization_server_metadata_url": f"{base_url}/.well-known/oauth-authorization-server",
                 "jwks_uri": settings.JWKS_URL,
                 "audience": settings.JWT_AUDIENCE,
-                "issuer": settings.JWT_ISSUER
+                "issuer": settings.JWT_ISSUER,
+                "oauth2_dynamic_registration": True,
+                "registration_endpoint": f"{base_url}/oauth2/register"
             }
         }
 
