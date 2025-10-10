@@ -100,11 +100,19 @@ async def validate_jwt_token(token: str) -> Dict:
             )
         else:
             # Method 2: Use static public key (fallback)
-            # Load public key
-            public_key = serialization.load_pem_public_key(
-                settings.JWT_PUBLIC_KEY.encode()
-            )
-            
+            # Read public key from file for robustness
+            from pathlib import Path
+            BASE_DIR = Path(__file__).resolve().parent.parent.parent
+            try:
+                with open(BASE_DIR / 'jwt_public_key.pem', 'r') as f:
+                    public_key_pem = f.read()
+                public_key = serialization.load_pem_public_key(
+                    public_key_pem.encode()
+                )
+            except (FileNotFoundError, ValueError) as e:
+                logger.error(f"Failed to load public key from file: {e}")
+                raise JWTValidationError(f"Server configuration error: Could not load public key.")
+
             payload = jwt.decode(
                 token,
                 public_key,
