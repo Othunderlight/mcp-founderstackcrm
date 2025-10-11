@@ -16,28 +16,7 @@ logger = logging.getLogger(__name__)
 DYNAMIC_CLIENTS: Dict[str, Dict] = {}
 AUTHORIZATION_CODES: Dict[str, Dict] = {}
 
-# Pre-register a test client for VS Code
-TEST_CLIENT_ID = "vscode_mcp_client"
-TEST_CLIENT_SECRET = "test_client_secret_123"
 
-# Initialize with a test client
-DYNAMIC_CLIENTS[TEST_CLIENT_ID] = {
-    "client_id": TEST_CLIENT_ID,
-    "client_secret": TEST_CLIENT_SECRET,
-    "client_name": "VS Code MCP Client",
-    "client_uri": "https://vscode.dev",
-    "redirect_uris": [
-        "http://127.0.0.1:33418",
-        "http://127.0.0.1:33418",
-        "https://vscode.dev/redirect"
-    ],
-    "grant_types": ["authorization_code"],
-    "response_types": ["code"],
-    "scope": "openid profile email",
-    "client_id_issued_at": int(time.time()),
-    "client_secret_expires_at": 0,
-    "created_at": time.time()
-}
 
 # OAuth2 Dynamic Client Registration Models
 class ClientRegistrationRequest(BaseModel):
@@ -117,34 +96,11 @@ def create_oauth2_router():
         Redirects users to Django's Google OAuth flow.
         """
         try:
-            # Validate client - check both dynamic and pre-registered clients
+            # Validate client
             client = DYNAMIC_CLIENTS.get(client_id)
             if not client:
-                # Check if it's the pre-registered test client
-                if client_id == TEST_CLIENT_ID:
-                    client = DYNAMIC_CLIENTS[TEST_CLIENT_ID]
-                else:
-                    # Auto-register unknown clients (for development/testing)
-                    logger.warning(f"Unknown client_id {client_id}, auto-registering for development")
-                    client = {
-                        "client_id": client_id,
-                        "client_secret": secrets.token_urlsafe(32),  # Generate a secret
-                        "client_name": f"Auto-registered MCP Client {client_id[:8]}",
-                        "client_uri": None,
-                        "redirect_uris": [
-                            "http://127.0.0.1:33418",
-                            "http://127.0.0.1:33418",
-                            "vscode://vscode.github-authentication/did-authenticate"
-                        ],
-                        "grant_types": ["authorization_code"],
-                        "response_types": ["code"],
-                        "scope": scope or "openid profile email",
-                        "client_id_issued_at": int(time.time()),
-                        "client_secret_expires_at": 0,
-                        "created_at": time.time()
-                    }
-                    DYNAMIC_CLIENTS[client_id] = client
-                    logger.info(f"Auto-registered client: {client_id}")
+                logger.error(f"Authorization attempt with unknown client_id: {client_id}")
+                raise HTTPException(status_code=400, detail="Invalid client_id")
             
             # Validate redirect_uri (be more permissive for development)
             valid_redirect = False

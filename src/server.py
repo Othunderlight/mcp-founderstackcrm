@@ -1,6 +1,7 @@
 
 import contextlib
 import uvicorn
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -9,6 +10,8 @@ from .config import settings
 from .tools import mcp as tools_server
 from .oauth import create_oauth2_router, get_oauth2_metadata
 import json
+
+logger = logging.getLogger(__name__)
 
 # Create a combined lifespan to manage the MCP session manager
 @contextlib.asynccontextmanager
