@@ -156,6 +156,10 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/oauth2/introspect"      # Token introspection endpoint
         ]
         
+        # Skip authentication for MCP discovery endpoints
+        if request.url.path.startswith("/mcp//.well-known/"):
+            return await call_next(request)
+        
         # Check if the current path should skip authentication
         for path in public_paths:
             if request.url.path.startswith(path):
