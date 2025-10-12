@@ -157,7 +157,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         ]
         
         # Skip authentication for MCP discovery endpoints
-        if request.url.path.startswith("/mcp//.well-known/"):
+        if request.url.path.startswith("/mcp/.well-known/"):
             return await call_next(request)
         
         # Check if the current path should skip authentication

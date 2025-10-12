@@ -114,6 +114,35 @@ async def oauth_protected_resource_metadata():
             }
         }
 
+class TrailingSlashMiddleware(BaseHTTPMiddleware):
+    """Middleware to handle trailing slash normalization for all endpoints"""
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        # Define endpoints that should NOT have trailing slashes
+        no_trailing_slash_endpoints = [
+            "/oauth2/register",
+            "/oauth2/authorize", 
+            "/oauth2/callback",
+            "/oauth2/token",
+            "/oauth2/userinfo",
+            "/oauth2/introspect"
+        ]
+        
+        current_path = request.url.path
+        
+        # Check if this is an endpoint that should not have a trailing slash
+        for endpoint in no_trailing_slash_endpoints:
+            if current_path == endpoint + "/":
+                # Redirect to version without trailing slash
+                from starlette.responses import RedirectResponse
+                redirect_url = str(request.url).replace(endpoint + "/", endpoint)
+                logger.info(f"Redirecting {current_path} to {endpoint}")
+                return RedirectResponse(url=redirect_url, status_code=301)
+        
+        return await call_next(request)
+
+# Add trailing slash normalization middleware
+app.add_middleware(TrailingSlashMiddleware)
+
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         logger.info(f"MCP Request Path: {request.url.path}")
@@ -135,7 +164,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 mcp_server = tools_server.streamable_http_app()
 mcp_server.add_middleware(RequestLoggingMiddleware)
 mcp_server.add_middleware(AuthMiddleware)
-app.mount("/", mcp_server)
+app.mount("/mcp", mcp_server)
 
 def main():
     """Main entry point for the MCP server."""
