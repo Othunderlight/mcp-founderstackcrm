@@ -143,28 +143,42 @@ class TrailingSlashMiddleware(BaseHTTPMiddleware):
 # Add trailing slash normalization middleware
 app.add_middleware(TrailingSlashMiddleware)
 
+from starlette.types import Message, Receive, Send
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        # Step 1: Read the entire body from the original request stream.
+        # This consumes the stream.
+        body = await request.body()
+
+        # Step 2: Now you can safely log the details you need.
         logger.info(f"MCP Request Path: {request.url.path}")
         logger.info(f"MCP Request Method: {request.method}")
         logger.info(f"MCP Request Headers: {request.headers}")
-        
-        # Read and log the request body
-        body = await request.body()
-        logger.info(f"MCP Request Body: {body.decode('utf-8')}")
-        
-        # To allow the body to be read again by the actual endpoint,
-        # we need to replace the stream.
-        request.scope['stream'] = io.BytesIO(body)
-        
-        response = await call_next(request)
+        if body:
+            logger.info(f"MCP Request Body: {body.decode('utf-8')}")
+        else:
+            logger.info("MCP Request Body: [EMPTY]")
+
+
+        # Step 3: Define a new `receive` function. This function will be used by the
+        # FastMCP server to get the request body. It simply returns the body we already captured.
+        async def receive() -> Message:
+            return {"type": "http.request", "body": body}
+
+        # Step 4: Create a new Request object that the next part of the application will use.
+        # It uses the same 'scope' (metadata) but our new 'receive' function.
+        new_request = Request(request.scope, receive)
+
+        # Step 5: Call the actual application (FastMCP) with the new request object that
+        # contains the re-playable body.
+        response = await call_next(new_request)
         return response
 
 # Create and mount the MCP server with authentication
 mcp_server = tools_server.streamable_http_app()
 mcp_server.add_middleware(RequestLoggingMiddleware)
 mcp_server.add_middleware(AuthMiddleware)
-app.mount("/mcp", mcp_server)
+app.mount("/mcp/", mcp_server)
 
 def main():
     """Main entry point for the MCP server."""

@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 current_user_context: ContextVar[Optional[Dict]] = ContextVar('current_user_context', default=None)
 current_auth_token: ContextVar[Optional[str]] = ContextVar('current_auth_token', default=None)
 
-mcp = FastMCP("CCCRM API 🚀", streamable_http_path="/mcp", host="127.0.0.1", port=settings.PORT)
+mcp = FastMCP("CCCRM API 🚀", streamable_http_path="/", stateless_http=True)
 
 def get_current_user() -> Optional[Dict]:
     """Get the current authenticated user information"""
