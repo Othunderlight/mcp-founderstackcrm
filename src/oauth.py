@@ -1,6 +1,8 @@
 import secrets
 import time
 import uuid
+import json
+import os
 from typing import Dict, Optional
 import httpx
 from fastapi import FastAPI, HTTPException, Query, Request, Form
@@ -12,9 +14,65 @@ from .config import settings
 
 logger = logging.getLogger(__name__)
 
-# In-memory storage for dynamic clients (in production, use Redis/Database)
+# File-based storage for dynamic clients (persists across server restarts)
+CLIENTS_FILE = os.path.join(os.path.dirname(__file__), "oauth_clients.json")
+AUTHORIZATION_CODES_FILE = os.path.join(os.path.dirname(__file__), "oauth_codes.json")
+
+# In-memory storage for dynamic clients (loaded from file)
 DYNAMIC_CLIENTS: Dict[str, Dict] = {}
 AUTHORIZATION_CODES: Dict[str, Dict] = {}
+
+def load_clients_from_file():
+    """Load clients from persistent storage"""
+    global DYNAMIC_CLIENTS
+    try:
+        if os.path.exists(CLIENTS_FILE):
+            with open(CLIENTS_FILE, 'r') as f:
+                DYNAMIC_CLIENTS = json.load(f)
+                logger.info(f"Loaded {len(DYNAMIC_CLIENTS)} clients from persistent storage")
+        else:
+            DYNAMIC_CLIENTS = {}
+            logger.info("No existing clients file found, starting with empty storage")
+    except Exception as e:
+        logger.error(f"Failed to load clients from file: {e}")
+        DYNAMIC_CLIENTS = {}
+
+def save_clients_to_file():
+    """Save clients to persistent storage"""
+    try:
+        with open(CLIENTS_FILE, 'w') as f:
+            json.dump(DYNAMIC_CLIENTS, f, indent=2)
+        logger.info(f"Saved {len(DYNAMIC_CLIENTS)} clients to persistent storage")
+    except Exception as e:
+        logger.error(f"Failed to save clients to file: {e}")
+
+def load_codes_from_file():
+    """Load authorization codes from persistent storage"""
+    global AUTHORIZATION_CODES
+    try:
+        if os.path.exists(AUTHORIZATION_CODES_FILE):
+            with open(AUTHORIZATION_CODES_FILE, 'r') as f:
+                AUTHORIZATION_CODES = json.load(f)
+                logger.info(f"Loaded {len(AUTHORIZATION_CODES)} authorization codes from persistent storage")
+        else:
+            AUTHORIZATION_CODES = {}
+            logger.info("No existing codes file found, starting with empty storage")
+    except Exception as e:
+        logger.error(f"Failed to load codes from file: {e}")
+        AUTHORIZATION_CODES = {}
+
+def save_codes_to_file():
+    """Save authorization codes to persistent storage"""
+    try:
+        with open(AUTHORIZATION_CODES_FILE, 'w') as f:
+            json.dump(AUTHORIZATION_CODES, f, indent=2)
+        logger.info(f"Saved {len(AUTHORIZATION_CODES)} authorization codes to persistent storage")
+    except Exception as e:
+        logger.error(f"Failed to save codes to file: {e}")
+
+# Load existing data on module import
+load_clients_from_file()
+load_codes_from_file()
 
 
 
@@ -73,6 +131,9 @@ def create_oauth2_router():
             
             DYNAMIC_CLIENTS[client_id] = client_data
             
+            # Save to persistent storage
+            save_clients_to_file()
+            
             logger.info(f"Registered new OAuth2 client: {client_id} ({registration.client_name})")
             
             return ClientRegistrationResponse(**client_data)
@@ -99,8 +160,24 @@ def create_oauth2_router():
             # Validate client
             client = DYNAMIC_CLIENTS.get(client_id)
             if not client:
-                logger.error(f"Authorization attempt with unknown client_id: {client_id}")
-                raise HTTPException(status_code=400, detail="Invalid client_id")
+                if client_id.startswith("mcp_client_"):
+                    # Create a default client for MCP inspector
+                    client = {
+                        "client_id": client_id,
+                        "client_name": "MCP Inspector",
+                        "redirect_uris": ["http://localhost:6274/oauth/callback/debug"],
+                        "grant_types": ["authorization_code"],
+                        "response_types": ["code"],
+                        "scope": "openid profile email",
+                        "client_id_issued_at": int(time.time()),
+                        "client_secret_expires_at": 0
+                    }
+                    DYNAMIC_CLIENTS[client_id] = client
+                    save_clients_to_file()
+                    logger.info(f"Created default MCP client: {client_id}")
+                else:
+                    logger.error(f"Authorization attempt with unknown client_id: {client_id}")
+                    raise HTTPException(status_code=400, detail="Invalid client_id")
             
             # Validate redirect_uri (be more permissive for development)
             valid_redirect = False
@@ -140,6 +217,9 @@ def create_oauth2_router():
             
             # Store auth request for callback
             AUTHORIZATION_CODES[auth_request_id] = auth_request
+            
+            # Save to persistent storage
+            save_codes_to_file()
 
             # New: Build the URL for our custom Django "bridge" view
             django_bridge_url = f"{settings.DJANGO_BASE_URL.rstrip('/')}/mcp/google-login/"
@@ -231,6 +311,9 @@ def create_oauth2_router():
             
             # Clean up auth request
             del AUTHORIZATION_CODES[auth_request_id]
+            
+            # Save to persistent storage
+            save_codes_to_file()
             
             # Redirect back to client with authorization code
             redirect_url = f"{auth_request['redirect_uri']}?code={auth_code}&state={state}"
@@ -325,6 +408,9 @@ def create_oauth2_router():
                 
                 # Clean up authorization code
                 del AUTHORIZATION_CODES[code]
+                
+                # Save to persistent storage
+                save_codes_to_file()
                 
                 response_data = {
                     "access_token": jwt_tokens["access_token"],

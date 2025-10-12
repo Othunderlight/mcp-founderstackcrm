@@ -96,8 +96,8 @@ async def oauth_protected_resource_metadata():
         # Default metadata response with OAuth2 support
         base_url = f"http://127.0.0.1:{settings.PORT}"
         return {
+            "resource": "cccrm-api",
             "resource_server_metadata": {
-                "resource_identifier": "cccrm-api",
                 "authorization_servers": [base_url],
                 "authorization_server_metadata_url": f"{base_url}/.well-known/oauth-authorization-server",
                 "jwks_uri": settings.JWKS_URL,
