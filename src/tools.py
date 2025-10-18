@@ -3,6 +3,7 @@ import logging
 from contextvars import ContextVar
 from mcp.server.fastmcp import FastMCP
 from typing import Dict, List, Optional
+import asyncio
 
 from .config import settings
 
@@ -62,10 +63,6 @@ async def make_django_request(
         logger.error(f"Request to Django failed: {e}")
         raise Exception(f"Request to Django backend failed: {str(e)}")
 
-@mcp.tool()
-def add_numbers(a: int, b: int) -> int:
-    """Add two numbers - simple demo tool"""
-    return a + b
 
 @mcp.tool()
 async def get_user_profile() -> Dict:
@@ -96,100 +93,183 @@ async def get_user_profile() -> Dict:
             "error": f"Could not fetch full profile: {str(e)}"
         }
 
+
+
+# example tool
+
+async def tool_function(args):
+    return "Example Tool Call"
+
 @mcp.tool()
-async def list_campaigns() -> Dict:
-    """List all campaigns for the authenticated user"""
+async def example_tool() -> Dict:
+    """
+    What does the tool do
+    
+    Args:
+        - arg1: describtion of it
+        - arg2: describtion of it
+
+    Return:
+        over all describtion
+
+        - return1: describtion of it
+        - return2: describtion of it
+
+
+    # example 1: full example if iam querying a db:
+
+    Queries a table with an optional condition.
+
+    Args:
+        table_name: The name of the table to query.
+        columns: Comma-separated list of columns to retrieve (e.g., "id, name"). Defaults to "*".
+        condition: Optional SQL WHERE clause condition (e.g., "id = 1" or "completed = 0").
+    Returns:
+        A list of dictionaries, where each dictionary represents a row.
+
+    # example 2: full example if iam inserting data to the db:
+
+    Inserts a new row of data into the specified table.
+
+    Args:
+        table_name (str): The name of the table to insert data into.
+        data (dict): A dictionary where keys are column names and values are the
+                     corresponding values for the new row.
+
+    Returns:
+        dict: A dictionary with keys 'success' (bool) and 'message' (str).
+              If successful, 'message' includes the ID of the newly inserted row.
+
+    """
     user_info = get_current_user()
     if not user_info:
         raise Exception("User not authenticated")
     
     try:
-        # Make request to Django API
-        campaigns = await make_django_request("/api/campaigns/", "GET")
+        # await for the tool action function to complete
+        tool_output = await tool_function(args)
+
+        # make sure to handle the case if there is two tools calls =>
+        # result1, result2 = await asyncio.gather(
+        #     tool_function_1(args1),
+        #     tool_function_2(args2)
+        # )
+
+        # return {
+        #     "results": {
+        #         "first (here you name the key a name that is relvant)": result1,
+        #         "second (same for here)": result2
+        #     },
+        #     "user_id": user_info.get("id"),
+        #     "status": "success"
+        # }
+
         return {
-            "campaigns": campaigns,
+            "results": tool_output,
             "user_id": user_info.get("id"),
-            "message": "Campaigns retrieved successfully"
+            "status": "success"
         }
     except Exception as e:
         return {
             "error": str(e),
             "user_id": user_info.get("id"),
-            "message": "Failed to retrieve campaigns"
+            "status": "Failed"
         }
 
-@mcp.tool()
-async def create_campaign(name: str, description: str = "") -> Dict:
-    """Create a new campaign for the authenticated user"""
-    user_info = get_current_user()
-    if not user_info:
-        raise Exception("User not authenticated")
-    
-    try:
-        campaign_data = {
-            "name": name,
-            "description": description
-        }
-        
-        # Make request to Django API
-        result = await make_django_request("/api/campaigns/", "POST", campaign_data)
-        return {
-            "campaign": result,
-            "user_id": user_info.get("id"),
-            "message": "Campaign created successfully"
-        }
-    except Exception as e:
-        return {
-            "error": str(e),
-            "user_id": user_info.get("id"),
-            "message": "Failed to create campaign"
-        }
 
-@mcp.tool()
-async def get_leads_count() -> Dict:
-    """Get the total number of leads for the authenticated user"""
-    user_info = get_current_user()
-    if not user_info:
-        raise Exception("User not authenticated")
-    
-    try:
-        # Make request to Django API
-        leads_data = await make_django_request("/api/leads/count/", "GET")
-        return {
-            "leads_count": leads_data.get("count", 0),
-            "user_id": user_info.get("id"),
-            "message": "Leads count retrieved successfully"
-        }
-    except Exception as e:
-        return {
-            "error": str(e),
-            "user_id": user_info.get("id"),
-            "message": "Failed to retrieve leads count"
-        }
 
-@mcp.tool()
-async def search_web(query: str) -> Dict:
-    """Search the web using Tavily API (demonstration of external API integration)"""
-    if not settings.TAVILY_API_KEY:
-        return {
-            "error": "Tavily API key not configured",
-            "message": "Please set TAVILY_API_KEY environment variable"
-        }
-    
-    try:
-        from tavily import TavilyClient
-        
-        tavily_client = TavilyClient(api_key=settings.TAVILY_API_KEY)
-        results = tavily_client.search(query=query, max_results=5)
-        
-        return {
-            "query": query,
-            "results": results.get("results", []),
-            "message": "Web search completed successfully"
-        }
-    except Exception as e:
-        return {
-            "error": str(e),
-            "query": query,
-            "message": "Web search failed"
-        }
+
+# tools, your code goes here:
+from .tools_utils import *
+
+
+# Emails
+
+# tool 1:
+# list_email_accounts
+
+# tool 2: 
+## multiple funcs (note these should not happen in pparlel, we add the new email account and wait
+## for the success, then test its connection. the example code tool will not work):
+### 1:
+### connect_email_account
+### 2:
+### test_email_account_connection
+
+# tool 3:
+# test_email_account_connection
+
+
+
+
+
+# Leads Lists
+
+# tool 1:
+# list_lead_lists
+
+
+# tool 2: 
+## multiple funcs (note these should not happen in pparlel, we dont call the instruction untill the list is created 
+## the example code tool will not work):
+### 1:
+### create_lead_list
+### 2:
+### add_leads_instructions; args: new_list=True
+
+
+# tools 3
+# add_leads_instructions; args: no need: default new_list=False
+
+
+
+
+
+# Msgs
+
+# tool 1:
+# list_messages
+
+# tool 2: 
+## multiple funcs (parlele is ok):
+### 1:
+### create_new_message
+### 2:
+### get_lead_info_vars
+
+
+# Campaigns
+# tool 1:
+# list_campaigns
+
+# tool 2:
+# get_campaign_stats
+
+# tool 3:
+# get_campaign_message_assignments_performance
+
+# tool 4:
+# get_campaign_leads_count
+
+# tool 5:
+# get_campaign_leads_lists
+
+# tool 6:
+# get_campaign_messages
+
+# tool 7:
+# get_campaign_options
+
+# tool 8:
+# launch new campaign
+
+# Msg Performance By msg assignment
+# tool 1
+# get_message_assignments_performance
+# do it but leave it commented since its as todo
+
+# provide feedback
+# tool 1
+# provide_feedback; args: 
+## instant=True if the user wanana give instant and fast feedback
+## instant=False if the user wanana give describetive feedback
