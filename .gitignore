@@ -208,3 +208,5 @@ __marimo__/
 
 oauth_clients.json
 oauth_codes.json
+
+*.pem

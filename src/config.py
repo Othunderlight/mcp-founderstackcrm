@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from pathlib import Path
 
 load_dotenv()
 
@@ -23,6 +24,8 @@ class Settings:
     
     # JWKS caching settings
     JWKS_CACHE_TTL: int = int(os.environ.get("JWKS_CACHE_TTL", "3600"))  # 1 hour
+
+    BASE_DIR = Path(__file__).resolve().parent.parent
     
     @property
     def JWKS_URL(self) -> str:
