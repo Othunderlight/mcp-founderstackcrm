@@ -2,6 +2,11 @@
 
 This guide shows how to integrate the MCP Server with your Django backend for OAuth2 authentication with Google.
 
+### before you start
+- you should already have the allauth (for me i only uses google), JWT for DRF configured
+- fastapi (the mcp server) runs on 10000
+- my base backend (django runs on 8000) 
+
 ## 1. Django Setup Requirements
 
 ### Required Apps
@@ -121,13 +126,13 @@ JWT_PUBLIC_KEY=-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwrR7...
 -----END PUBLIC KEY-----
 
-# JWT Settings
-JWT_AUDIENCE=cccrm-api
-JWT_ISSUER=cccrm-backend
+## or just use with open fro the .pem files instead, as i did with the code  
 
-# Google OAuth (get from Google Console)
-SOCIALACCOUNT_PROVIDERS_GOOGLE_CLIENT_ID=your_google_client_id
-SOCIALACCOUNT_PROVIDERS_GOOGLE_SECRET=your_google_client_secret
+# JWT Settings
+JWT_AUDIENCE=
+JWT_ISSUER=
+
+
 ```
 
 ## 5. Generate JWT Keys
