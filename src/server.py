@@ -14,6 +14,7 @@ from .auth import AuthMiddleware
 from .config import settings
 from .tools import mcp as tools_server
 from .oauth import create_oauth2_router, get_oauth2_metadata
+from . import database
 import json
 
 logger = logging.getLogger(__name__)
@@ -21,6 +22,7 @@ logger = logging.getLogger(__name__)
 # Create a combined lifespan to manage the MCP session manager
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
+    database.create_tables()
     async with tools_server.session_manager.run():
         yield
 
