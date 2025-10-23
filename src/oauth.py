@@ -10,7 +10,7 @@ from pydantic import BaseModel
 import logging
 
 from .config import settings
-from . import database as db
+from .database import OAuthClient, OAuthCode
 
 logger = logging.getLogger(__name__)
 
@@ -51,35 +51,23 @@ def create_oauth2_router():
             client_id = f"mcp_client_{uuid.uuid4().hex[:16]}"
             client_secret = secrets.token_urlsafe(32)
             
-            client_data = {
-                "client_id": client_id,
-                "client_secret": client_secret,
-                "client_name": registration.client_name,
-                "client_uri": registration.client_uri,
-                "redirect_uris": json.dumps(registration.redirect_uris),
-                "grant_types": json.dumps(registration.grant_types or ["authorization_code"]),
-                "response_types": json.dumps(registration.response_types or ["code"]),
-                "scope": registration.scope or "openid profile email",
-                "client_id_issued_at": int(time.time()),
-                "client_secret_expires_at": 0,  # No expiration
-                "created_at": time.time()
-            }
-            
-            conn = db.get_db_connection()
-            conn.execute(
-                "INSERT INTO oauth_clients (client_id, client_secret, client_name, client_uri, redirect_uris, grant_types, response_types, scope, client_id_issued_at, client_secret_expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                list(client_data.values())
+            client = await OAuthClient.create(
+                client_id=client_id,
+                client_secret=client_secret,
+                client_name=registration.client_name,
+                client_uri=registration.client_uri,
+                redirect_uris=registration.redirect_uris,
+                grant_types=registration.grant_types or ["authorization_code"],
+                response_types=registration.response_types or ["code"],
+                scope=registration.scope or "openid profile email",
+                client_id_issued_at=int(time.time()),
+                client_secret_expires_at=0,  # No expiration
+                created_at=time.time()
             )
-            conn.commit()
-            conn.close()
             
-            logger.info(f"Registered new OAuth2 client: {client_id} ({registration.client_name})")
+            logger.info(f"Registered new OAuth2 client: {client.client_id} ({client.client_name})")
             
-            client_data['redirect_uris'] = registration.redirect_uris
-            client_data['grant_types'] = registration.grant_types or ["authorization_code"]
-            client_data['response_types'] = registration.response_types or ["code"]
-
-            return ClientRegistrationResponse(**client_data)
+            return ClientRegistrationResponse(**client.__dict__)
             
         except Exception as e:
             logger.error(f"Client registration failed: {e}")
@@ -100,40 +88,30 @@ def create_oauth2_router():
         Redirects users to Django's Google OAuth flow.
         """
         try:
-            conn = db.get_db_connection()
-            client_row = conn.execute("SELECT * FROM oauth_clients WHERE client_id = ?", (client_id,)).fetchone()
-            conn.close()
-            client = db.dict_to_client(client_row)
+            client = await OAuthClient.get_or_none(client_id=client_id)
 
             if not client:
                 if client_id.startswith("mcp_client_"):
-                    client = {
-                        "client_id": client_id,
-                        "client_secret": "dummy_secret",
-                        "client_name": "MCP Inspector",
-                        "client_uri": "",
-                        "redirect_uris": ["http://localhost:6274/oauth/callback/debug"],
-                        "grant_types": ["authorization_code"],
-                        "response_types": ["code"],
-                        "scope": "openid profile email",
-                        "client_id_issued_at": int(time.time()),
-                        "client_secret_expires_at": 0,
-                        "created_at": time.time()
-                    }
-                    conn = db.get_db_connection()
-                    conn.execute(
-                        "INSERT INTO oauth_clients (client_id, client_secret, client_name, client_uri, redirect_uris, grant_types, response_types, scope, client_id_issued_at, client_secret_expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                        (client['client_id'], client['client_secret'], client['client_name'], client['client_uri'], json.dumps(client['redirect_uris']), json.dumps(client['grant_types']), json.dumps(client['response_types']), client['scope'], client['client_id_issued_at'], client['client_secret_expires_at'], client['created_at'])
+                    client = await OAuthClient.create(
+                        client_id=client_id,
+                        client_secret="dummy_secret",
+                        client_name="MCP Inspector",
+                        client_uri="",
+                        redirect_uris=["http://localhost:6274/oauth/callback/debug"],
+                        grant_types=["authorization_code"],
+                        response_types=["code"],
+                        scope="openid profile email",
+                        client_id_issued_at=int(time.time()),
+                        client_secret_expires_at=0,
+                        created_at=time.time()
                     )
-                    conn.commit()
-                    conn.close()
                     logger.info(f"Created default MCP client: {client_id}")
                 else:
                     logger.error(f"Authorization attempt with unknown client_id: {client_id}")
                     raise HTTPException(status_code=400, detail="Invalid client_id")
             
             valid_redirect = False
-            for allowed_uri in client["redirect_uris"]:
+            for allowed_uri in client.redirect_uris:
                 if (redirect_uri == allowed_uri or
                     redirect_uri.rstrip('/') == allowed_uri.rstrip('/') or
                     redirect_uri.rstrip('/') == allowed_uri):
@@ -141,37 +119,29 @@ def create_oauth2_router():
                     break
 
             if not valid_redirect:
-                logger.warning(f"Redirect URI {redirect_uri} not in allowed list {client['redirect_uris']}, allowing for development")
+                logger.warning(f"Redirect URI {redirect_uri} not in allowed list {client.redirect_uris}, allowing for development")
                 if redirect_uri.startswith(('http://127.0.0.1:', 'http://localhost:', 'vscode://')):
                     logger.info(f"Allowing 127.0.0.1/VSCode redirect_uri for development: {redirect_uri}")
                     valid_redirect = True
                 else:
-                    logger.error(f"Invalid redirect_uri: {redirect_uri}, allowed: {client['redirect_uris']}")
+                    logger.error(f"Invalid redirect_uri: {redirect_uri}, allowed: {client.redirect_uris}")
                     raise HTTPException(status_code=400, detail="Invalid redirect_uri")
             
             if not state:
                 state = secrets.token_urlsafe(16)
             
             auth_request_id = secrets.token_urlsafe(16)
-            auth_request = {
-                "code": auth_request_id,
-                "client_id": client_id,
-                "redirect_uri": redirect_uri,
-                "scope": scope,
-                "user_info": json.dumps({"state": state}), # Store state here
-                "code_challenge": code_challenge,
-                "code_challenge_method": code_challenge_method,
-                "created_at": time.time(),
-                "expires_at": time.time() + 600
-            }
-            
-            conn = db.get_db_connection()
-            conn.execute(
-                "INSERT INTO oauth_codes (code, client_id, redirect_uri, scope, user_info, code_challenge, code_challenge_method, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                list(auth_request.values())
+            await OAuthCode.create(
+                code=auth_request_id,
+                client=client,
+                redirect_uri=redirect_uri,
+                scope=scope,
+                user_info={"state": state}, # Store state here
+                code_challenge=code_challenge,
+                code_challenge_method=code_challenge_method,
+                created_at=time.time(),
+                expires_at=time.time() + 600
             )
-            conn.commit()
-            conn.close()
 
             django_bridge_url = f"{settings.DJANGO_BASE_URL.rstrip('/')}/mcp/google-login/"
             django_redirect_url = f"{django_bridge_url}?auth_request_id={auth_request_id}&state={state}"
@@ -201,15 +171,12 @@ def create_oauth2_router():
         Handles the callback from Django after Google OAuth completion.
         """
         try:
-            conn = db.get_db_connection()
-            auth_request_row = conn.execute("SELECT * FROM oauth_codes WHERE code = ?", (auth_request_id,)).fetchone()
-            conn.close()
-            auth_request = db.dict_to_code(auth_request_row)
+            auth_request = await OAuthCode.get_or_none(code=auth_request_id)
 
             if not auth_request:
                 raise HTTPException(status_code=400, detail="Invalid authorization request")
 
-            original_state = auth_request.get("user_info", {}).get("state")
+            original_state = auth_request.user_info.get("state")
 
             if error:
                 logger.error(f"OAuth error from Django: {error} - {error_description}")
@@ -218,7 +185,7 @@ def create_oauth2_router():
                 if original_state:
                     error_params["state"] = original_state
                 
-                redirect_url = f"{auth_request['redirect_uri']}?{urlencode(error_params)}"
+                redirect_url = f"{auth_request.redirect_uri}?{urlencode(error_params)}"
                 return RedirectResponse(url=redirect_url)
 
             if state != original_state:
@@ -235,30 +202,23 @@ def create_oauth2_router():
             
             auth_code = secrets.token_urlsafe(32)
             
-            code_data = {
-                "code": auth_code,
-                "client_id": auth_request["client_id"],
-                "redirect_uri": auth_request["redirect_uri"],
-                "scope": auth_request["scope"],
-                "user_info": json.dumps(user_info),
-                "code_challenge": auth_request.get("code_challenge"),
-                "code_challenge_method": auth_request.get("code_challenge_method"),
-                "created_at": time.time(),
-                "expires_at": time.time() + 600
-            }
-            
-            conn = db.get_db_connection()
-            conn.execute("DELETE FROM oauth_codes WHERE code = ?", (auth_request_id,))
-            conn.execute(
-                "INSERT INTO oauth_codes (code, client_id, redirect_uri, scope, user_info, code_challenge, code_challenge_method, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                list(code_data.values())
+            client = await auth_request.client
+            await auth_request.delete()
+            await OAuthCode.create(
+                code=auth_code,
+                client=client,
+                redirect_uri=auth_request.redirect_uri,
+                scope=auth_request.scope,
+                user_info=user_info,
+                code_challenge=auth_request.code_challenge,
+                code_challenge_method=auth_request.code_challenge_method,
+                created_at=time.time(),
+                expires_at=time.time() + 600
             )
-            conn.commit()
-            conn.close()
             
-            redirect_url = f"{auth_request['redirect_uri']}?code={auth_code}&state={state}"
+            redirect_url = f"{auth_request.redirect_uri}?code={auth_code}&state={state}"
             
-            logger.info(f"OAuth callback successful for client {auth_request['client_id']}, user: {django_user_email}")
+            logger.info(f"OAuth callback successful for client {client.client_id}, user: {django_user_email}")
             
             return RedirectResponse(url=redirect_url, status_code=302)
             
@@ -285,74 +245,60 @@ def create_oauth2_router():
         try:
             logger.info(f"Token request - grant_type: {grant_type}, client_id: {client_id}, code: {code}")
             
-            conn = db.get_db_connection()
-
             if not client_id and code:
-                code_row = conn.execute("SELECT * FROM oauth_codes WHERE code = ?", (code,)).fetchone()
-                if code_row:
-                    client_id = db.dict_to_code(code_row).get("client_id")
+                code_data = await OAuthCode.get_or_none(code=code)
+                if code_data:
+                    client = await code_data.client
+                    client_id = client.client_id
                     logger.info(f"Extracted client_id from authorization code: {client_id}")
 
             if not client_id:
-                conn.close()
                 raise HTTPException(status_code=400, detail="Missing client_id")
             
-            client_row = conn.execute("SELECT * FROM oauth_clients WHERE client_id = ?", (client_id,)).fetchone()
-            client = db.dict_to_client(client_row)
+            client = await OAuthClient.get_or_none(client_id=client_id)
 
             if not client:
-                conn.close()
                 logger.error(f"Token request with unknown client_id: {client_id}")
                 raise HTTPException(status_code=401, detail="Invalid client credentials")
 
             if client_id.startswith("mcp_client_"):
                 pass
-            elif client.get("client_secret") and client_secret and client["client_secret"] != client_secret:
-                conn.close()
+            elif client.client_secret and client_secret and client.client_secret != client_secret:
                 logger.error(f"Invalid client_secret for client: {client_id}")
                 raise HTTPException(status_code=401, detail="Invalid client credentials")
-            elif client.get("client_secret") and not client_secret:
+            elif client.client_secret and not client_secret:
                 logger.warning(f"Missing client_secret for pre-registered client: {client_id}")
                 pass
             
             if grant_type == "authorization_code":
                 if not code or not redirect_uri:
-                    conn.close()
                     raise HTTPException(status_code=400, detail="Missing required parameters")
                 
-                code_row = conn.execute("SELECT * FROM oauth_codes WHERE code = ?", (code,)).fetchone()
-                code_data = db.dict_to_code(code_row)
+                code_data = await OAuthCode.get_or_none(code=code)
 
                 if not code_data:
-                    conn.close()
                     raise HTTPException(status_code=400, detail="Invalid authorization code")
                 
-                if time.time() > code_data["expires_at"]:
-                    conn.execute("DELETE FROM oauth_codes WHERE code = ?", (code,))
-                    conn.commit()
-                    conn.close()
+                if time.time() > code_data.expires_at:
+                    await code_data.delete()
                     raise HTTPException(status_code=400, detail="Authorization code expired")
                 
-                if redirect_uri != code_data["redirect_uri"]:
-                    conn.close()
+                if redirect_uri != code_data.redirect_uri:
                     raise HTTPException(status_code=400, detail="Invalid redirect_uri")
                 
-                if code_data.get("code_challenge"):
+                if code_data.code_challenge:
                     if not code_verifier:
-                        conn.close()
                         raise HTTPException(status_code=400, detail="Missing code_verifier")
                 
-                jwt_tokens = await get_jwt_tokens_from_django(code_data["user_info"])
+                jwt_tokens = await get_jwt_tokens_from_django(code_data.user_info)
                 
-                conn.execute("DELETE FROM oauth_codes WHERE code = ?", (code,))
-                conn.commit()
-                conn.close()
+                await code_data.delete()
                 
                 response_data = {
                     "access_token": jwt_tokens["access_token"],
                     "token_type": "Bearer",
                     "expires_in": 3600,
-                    "scope": code_data["scope"]
+                    "scope": code_data.scope
                 }
                 
                 if "refresh_token" in jwt_tokens:
@@ -363,7 +309,6 @@ def create_oauth2_router():
                 return JSONResponse(content=response_data)
             
             else:
-                conn.close()
                 raise HTTPException(status_code=400, detail="Unsupported grant type")
                 
         except HTTPException:
