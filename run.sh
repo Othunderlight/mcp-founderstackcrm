@@ -1,0 +1,1 @@
+uvicorn src.server:app --host localhost --port 10000 --reload

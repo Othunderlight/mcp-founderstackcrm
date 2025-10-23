@@ -9,6 +9,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
+import io
+import asyncio
+import contextlib
+import uvicorn
+import logging
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+from starlette.requests import Request
+from starlette.responses import Response
+from tortoise import Tortoise
 
 from .auth import AuthMiddleware
 from .config import settings
@@ -18,11 +29,13 @@ import json
 
 logger = logging.getLogger(__name__)
 
-# Create a combined lifespan to manage the MCP session manager
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
+    await Tortoise.init(config=settings.TORTOISE_ORM)
+    await Tortoise.generate_schemas()
     async with tools_server.session_manager.run():
         yield
+    await Tortoise.close_connections()
 
 app = FastAPI(lifespan=lifespan)
 
@@ -179,6 +192,8 @@ mcp_server = tools_server.streamable_http_app()
 mcp_server.add_middleware(RequestLoggingMiddleware)
 mcp_server.add_middleware(AuthMiddleware)
 app.mount("/mcp/", mcp_server)
+
+
 
 def main():
     """Main entry point for the MCP server."""

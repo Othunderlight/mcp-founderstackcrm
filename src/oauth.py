@@ -2,7 +2,6 @@ import secrets
 import time
 import uuid
 import json
-import os
 from typing import Dict, Optional
 import httpx
 from fastapi import FastAPI, HTTPException, Query, Request, Form
@@ -11,70 +10,9 @@ from pydantic import BaseModel
 import logging
 
 from .config import settings
+from .database import OAuthClient, OAuthCode
 
 logger = logging.getLogger(__name__)
-
-# File-based storage for dynamic clients (persists across server restarts)
-CLIENTS_FILE = os.path.join(os.path.dirname(__file__), "oauth_clients.json")
-AUTHORIZATION_CODES_FILE = os.path.join(os.path.dirname(__file__), "oauth_codes.json")
-
-# In-memory storage for dynamic clients (loaded from file)
-DYNAMIC_CLIENTS: Dict[str, Dict] = {}
-AUTHORIZATION_CODES: Dict[str, Dict] = {}
-
-def load_clients_from_file():
-    """Load clients from persistent storage"""
-    global DYNAMIC_CLIENTS
-    try:
-        if os.path.exists(CLIENTS_FILE):
-            with open(CLIENTS_FILE, 'r') as f:
-                DYNAMIC_CLIENTS = json.load(f)
-                logger.info(f"Loaded {len(DYNAMIC_CLIENTS)} clients from persistent storage")
-        else:
-            DYNAMIC_CLIENTS = {}
-            logger.info("No existing clients file found, starting with empty storage")
-    except Exception as e:
-        logger.error(f"Failed to load clients from file: {e}")
-        DYNAMIC_CLIENTS = {}
-
-def save_clients_to_file():
-    """Save clients to persistent storage"""
-    try:
-        with open(CLIENTS_FILE, 'w') as f:
-            json.dump(DYNAMIC_CLIENTS, f, indent=2)
-        logger.info(f"Saved {len(DYNAMIC_CLIENTS)} clients to persistent storage")
-    except Exception as e:
-        logger.error(f"Failed to save clients to file: {e}")
-
-def load_codes_from_file():
-    """Load authorization codes from persistent storage"""
-    global AUTHORIZATION_CODES
-    try:
-        if os.path.exists(AUTHORIZATION_CODES_FILE):
-            with open(AUTHORIZATION_CODES_FILE, 'r') as f:
-                AUTHORIZATION_CODES = json.load(f)
-                logger.info(f"Loaded {len(AUTHORIZATION_CODES)} authorization codes from persistent storage")
-        else:
-            AUTHORIZATION_CODES = {}
-            logger.info("No existing codes file found, starting with empty storage")
-    except Exception as e:
-        logger.error(f"Failed to load codes from file: {e}")
-        AUTHORIZATION_CODES = {}
-
-def save_codes_to_file():
-    """Save authorization codes to persistent storage"""
-    try:
-        with open(AUTHORIZATION_CODES_FILE, 'w') as f:
-            json.dump(AUTHORIZATION_CODES, f, indent=2)
-        logger.info(f"Saved {len(AUTHORIZATION_CODES)} authorization codes to persistent storage")
-    except Exception as e:
-        logger.error(f"Failed to save codes to file: {e}")
-
-# Load existing data on module import
-load_clients_from_file()
-load_codes_from_file()
-
-
 
 # OAuth2 Dynamic Client Registration Models
 class ClientRegistrationRequest(BaseModel):
@@ -110,33 +48,26 @@ def create_oauth2_router():
         Allows MCP clients to register themselves and get client credentials.
         """
         try:
-            # Generate client credentials
             client_id = f"mcp_client_{uuid.uuid4().hex[:16]}"
             client_secret = secrets.token_urlsafe(32)
             
-            # Store client information
-            client_data = {
-                "client_id": client_id,
-                "client_secret": client_secret,
-                "client_name": registration.client_name,
-                "client_uri": registration.client_uri,
-                "redirect_uris": registration.redirect_uris,
-                "grant_types": registration.grant_types or ["authorization_code"],
-                "response_types": registration.response_types or ["code"],
-                "scope": registration.scope or "openid profile email",
-                "client_id_issued_at": int(time.time()),
-                "client_secret_expires_at": 0,  # No expiration
-                "created_at": time.time()
-            }
+            client = await OAuthClient.create(
+                client_id=client_id,
+                client_secret=client_secret,
+                client_name=registration.client_name,
+                client_uri=registration.client_uri,
+                redirect_uris=registration.redirect_uris,
+                grant_types=registration.grant_types or ["authorization_code"],
+                response_types=registration.response_types or ["code"],
+                scope=registration.scope or "openid profile email",
+                client_id_issued_at=int(time.time()),
+                client_secret_expires_at=0,  # No expiration
+                created_at=time.time()
+            )
             
-            DYNAMIC_CLIENTS[client_id] = client_data
+            logger.info(f"Registered new OAuth2 client: {client.client_id} ({client.client_name})")
             
-            # Save to persistent storage
-            save_clients_to_file()
-            
-            logger.info(f"Registered new OAuth2 client: {client_id} ({registration.client_name})")
-            
-            return ClientRegistrationResponse(**client_data)
+            return ClientRegistrationResponse(**client.__dict__)
             
         except Exception as e:
             logger.error(f"Client registration failed: {e}")
@@ -157,32 +88,30 @@ def create_oauth2_router():
         Redirects users to Django's Google OAuth flow.
         """
         try:
-            # Validate client
-            client = DYNAMIC_CLIENTS.get(client_id)
+            client = await OAuthClient.get_or_none(client_id=client_id)
+
             if not client:
                 if client_id.startswith("mcp_client_"):
-                    # Create a default client for MCP inspector
-                    client = {
-                        "client_id": client_id,
-                        "client_name": "MCP Inspector",
-                        "redirect_uris": ["http://localhost:6274/oauth/callback/debug"],
-                        "grant_types": ["authorization_code"],
-                        "response_types": ["code"],
-                        "scope": "openid profile email",
-                        "client_id_issued_at": int(time.time()),
-                        "client_secret_expires_at": 0
-                    }
-                    DYNAMIC_CLIENTS[client_id] = client
-                    save_clients_to_file()
+                    client = await OAuthClient.create(
+                        client_id=client_id,
+                        client_secret="dummy_secret",
+                        client_name="MCP Inspector",
+                        client_uri="",
+                        redirect_uris=["http://localhost:6274/oauth/callback/debug"],
+                        grant_types=["authorization_code"],
+                        response_types=["code"],
+                        scope="openid profile email",
+                        client_id_issued_at=int(time.time()),
+                        client_secret_expires_at=0,
+                        created_at=time.time()
+                    )
                     logger.info(f"Created default MCP client: {client_id}")
                 else:
                     logger.error(f"Authorization attempt with unknown client_id: {client_id}")
                     raise HTTPException(status_code=400, detail="Invalid client_id")
             
-            # Validate redirect_uri (be more permissive for development)
             valid_redirect = False
-            for allowed_uri in client["redirect_uris"]:
-                # Allow exact match or match without trailing slash
+            for allowed_uri in client.redirect_uris:
                 if (redirect_uri == allowed_uri or
                     redirect_uri.rstrip('/') == allowed_uri.rstrip('/') or
                     redirect_uri.rstrip('/') == allowed_uri):
@@ -190,38 +119,30 @@ def create_oauth2_router():
                     break
 
             if not valid_redirect:
-                logger.warning(f"Redirect URI {redirect_uri} not in allowed list {client['redirect_uris']}, allowing for development")
-                # For development, allow all 127.0.0.1 redirect URIs
-                if redirect_uri.startswith(('http://127.0.0.1:', 'http://127.0.0.1:', 'vscode://')):
+                logger.warning(f"Redirect URI {redirect_uri} not in allowed list {client.redirect_uris}, allowing for development")
+                if redirect_uri.startswith(('http://127.0.0.1:', 'http://localhost:', 'vscode://')):
                     logger.info(f"Allowing 127.0.0.1/VSCode redirect_uri for development: {redirect_uri}")
                     valid_redirect = True
                 else:
-                    logger.error(f"Invalid redirect_uri: {redirect_uri}, allowed: {client['redirect_uris']}")
+                    logger.error(f"Invalid redirect_uri: {redirect_uri}, allowed: {client.redirect_uris}")
                     raise HTTPException(status_code=400, detail="Invalid redirect_uri")
             
-            # Generate state for CSRF protection if not provided
             if not state:
                 state = secrets.token_urlsafe(16)
             
-            # Store authorization request details
             auth_request_id = secrets.token_urlsafe(16)
-            auth_request = {
-                "client_id": client_id,
-                "redirect_uri": redirect_uri,
-                "scope": scope,
-                "state": state,
-                "code_challenge": code_challenge,
-                "code_challenge_method": code_challenge_method,
-                "created_at": time.time()
-            }
-            
-            # Store auth request for callback
-            AUTHORIZATION_CODES[auth_request_id] = auth_request
-            
-            # Save to persistent storage
-            save_codes_to_file()
+            await OAuthCode.create(
+                code=auth_request_id,
+                client=client,
+                redirect_uri=redirect_uri,
+                scope=scope,
+                user_info={"state": state}, # Store state here
+                code_challenge=code_challenge,
+                code_challenge_method=code_challenge_method,
+                created_at=time.time(),
+                expires_at=time.time() + 600
+            )
 
-            # New: Build the URL for our custom Django "bridge" view
             django_bridge_url = f"{settings.DJANGO_BASE_URL.rstrip('/')}/mcp/google-login/"
             django_redirect_url = f"{django_bridge_url}?auth_request_id={auth_request_id}&state={state}"
 
@@ -250,75 +171,54 @@ def create_oauth2_router():
         Handles the callback from Django after Google OAuth completion.
         """
         try:
-            # Handle OAuth errors first
-            if error:
-                logger.error(f"OAuth error from Django: {error} - {error_description}")
-                
-                # Retrieve the original auth request to get the client's redirect_uri
-                auth_request = AUTHORIZATION_CODES.get(auth_request_id)
-                if not auth_request:
-                    raise HTTPException(status_code=400, detail="Invalid authorization request ID during error handling.")
+            auth_request = await OAuthCode.get_or_none(code=auth_request_id)
 
-                # Redirect back to the client's redirect_uri with the error details
-                from urllib.parse import urlencode
-                error_params = {
-                    "error": error,
-                    "error_description": error_description,
-                }
-                if state:
-                    error_params["state"] = state
-                
-                redirect_url = f"{auth_request['redirect_uri']}?{urlencode(error_params)}"
-                
-                return RedirectResponse(url=redirect_url)
-
-            # If no error, proceed with success flow
-            auth_request = AUTHORIZATION_CODES.get(auth_request_id)
             if not auth_request:
                 raise HTTPException(status_code=400, detail="Invalid authorization request")
-            
-            # Verify state parameter
-            if state != auth_request.get("state"):
+
+            original_state = auth_request.user_info.get("state")
+
+            if error:
+                logger.error(f"OAuth error from Django: {error} - {error_description}")
+                from urllib.parse import urlencode
+                error_params = {"error": error, "error_description": error_description}
+                if original_state:
+                    error_params["state"] = original_state
+                
+                redirect_url = f"{auth_request.redirect_uri}?{urlencode(error_params)}"
+                return RedirectResponse(url=redirect_url)
+
+            if state != original_state:
                 raise HTTPException(status_code=400, detail="Invalid state parameter")
             
-            # Validate user info from Django callback
             if not django_user_id or not django_user_email:
                 raise HTTPException(status_code=400, detail="Missing user information from Django")
             
-            # Create user info object
             user_info = {
                 "id": django_user_id,
                 "email": django_user_email,
-                "username": django_user_email  # Use email as username fallback
+                "username": django_user_email
             }
             
-            # Generate authorization code
             auth_code = secrets.token_urlsafe(32)
             
-            # Store authorization code with user info
-            code_data = {
-                "client_id": auth_request["client_id"],
-                "redirect_uri": auth_request["redirect_uri"],
-                "scope": auth_request["scope"],
-                "user_info": user_info,
-                "code_challenge": auth_request.get("code_challenge"),
-                "code_challenge_method": auth_request.get("code_challenge_method"),
-                "created_at": time.time(),
-                "expires_at": time.time() + 600  # 10 minutes
-            }
+            client = await auth_request.client
+            await auth_request.delete()
+            await OAuthCode.create(
+                code=auth_code,
+                client=client,
+                redirect_uri=auth_request.redirect_uri,
+                scope=auth_request.scope,
+                user_info=user_info,
+                code_challenge=auth_request.code_challenge,
+                code_challenge_method=auth_request.code_challenge_method,
+                created_at=time.time(),
+                expires_at=time.time() + 600
+            )
             
-            AUTHORIZATION_CODES[auth_code] = code_data
+            redirect_url = f"{auth_request.redirect_uri}?code={auth_code}&state={state}"
             
-            # Clean up auth request
-            del AUTHORIZATION_CODES[auth_request_id]
-            
-            # Save to persistent storage
-            save_codes_to_file()
-            
-            # Redirect back to client with authorization code
-            redirect_url = f"{auth_request['redirect_uri']}?code={auth_code}&state={state}"
-            
-            logger.info(f"OAuth callback successful for client {auth_request['client_id']}, user: {django_user_email}")
+            logger.info(f"OAuth callback successful for client {client.client_id}, user: {django_user_email}")
             
             return RedirectResponse(url=redirect_url, status_code=302)
             
@@ -343,80 +243,62 @@ def create_oauth2_router():
         Exchanges authorization codes for JWT access tokens.
         """
         try:
-            # Debug logging
             logger.info(f"Token request - grant_type: {grant_type}, client_id: {client_id}, code: {code}")
             
-            # Try to extract client_id from authorization code if not provided
             if not client_id and code:
-                code_data = AUTHORIZATION_CODES.get(code)
+                code_data = await OAuthCode.get_or_none(code=code)
                 if code_data:
-                    client_id = code_data.get("client_id")
+                    client = await code_data.client
+                    client_id = client.client_id
                     logger.info(f"Extracted client_id from authorization code: {client_id}")
-            
-            # If still no client_id, try to find it from the authorization code
+
             if not client_id:
                 raise HTTPException(status_code=400, detail="Missing client_id")
             
-            # Validate client credentials
-            client = DYNAMIC_CLIENTS.get(client_id)
+            client = await OAuthClient.get_or_none(client_id=client_id)
+
             if not client:
                 logger.error(f"Token request with unknown client_id: {client_id}")
                 raise HTTPException(status_code=401, detail="Invalid client credentials")
 
-            # For auto-registered clients (mcp_client_*), skip secret validation in development
-            # For pre-registered clients, validate the secret
             if client_id.startswith("mcp_client_"):
-                # Auto-registered client - skip secret validation
-                logger.info(f"Skipping client_secret validation for auto-registered client: {client_id}")
                 pass
-            elif client.get("client_secret") and client_secret and client["client_secret"] != client_secret:
-                # Pre-registered client - validate secret
+            elif client.client_secret and client_secret and client.client_secret != client_secret:
                 logger.error(f"Invalid client_secret for client: {client_id}")
                 raise HTTPException(status_code=401, detail="Invalid client credentials")
-            elif client.get("client_secret") and not client_secret:
-                # Pre-registered client but no secret provided
+            elif client.client_secret and not client_secret:
                 logger.warning(f"Missing client_secret for pre-registered client: {client_id}")
-                # For development, allow this to pass
                 pass
             
             if grant_type == "authorization_code":
                 if not code or not redirect_uri:
                     raise HTTPException(status_code=400, detail="Missing required parameters")
                 
-                # Validate authorization code
-                code_data = AUTHORIZATION_CODES.get(code)
+                code_data = await OAuthCode.get_or_none(code=code)
+
                 if not code_data:
                     raise HTTPException(status_code=400, detail="Invalid authorization code")
                 
-                # Check expiration
-                if time.time() > code_data["expires_at"]:
-                    del AUTHORIZATION_CODES[code]
+                if time.time() > code_data.expires_at:
+                    await code_data.delete()
                     raise HTTPException(status_code=400, detail="Authorization code expired")
                 
-                # Validate redirect_uri
-                if redirect_uri != code_data["redirect_uri"]:
+                if redirect_uri != code_data.redirect_uri:
                     raise HTTPException(status_code=400, detail="Invalid redirect_uri")
                 
-                # Validate PKCE if used
-                if code_data.get("code_challenge"):
+                if code_data.code_challenge:
                     if not code_verifier:
                         raise HTTPException(status_code=400, detail="Missing code_verifier")
-                    # In production, validate PKCE challenge
                 
-                # Request JWT tokens from Django
-                jwt_tokens = await get_jwt_tokens_from_django(code_data["user_info"])
+                jwt_tokens = await get_jwt_tokens_from_django(code_data.user_info)
                 
-                # Clean up authorization code
-                del AUTHORIZATION_CODES[code]
-                
-                # Save to persistent storage
-                save_codes_to_file()
+                await code_data.delete()
                 
                 response_data = {
                     "access_token": jwt_tokens["access_token"],
                     "token_type": "Bearer",
-                    "expires_in": 3600,  # 1 hour
-                    "scope": code_data["scope"]
+                    "expires_in": 3600,
+                    "scope": code_data.scope
                 }
                 
                 if "refresh_token" in jwt_tokens:

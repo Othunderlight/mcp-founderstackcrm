@@ -208,3 +208,19 @@ __marimo__/
 
 oauth_clients.json
 oauth_codes.json
+
+*.pem
+
+
+migrations/
+
+# Database
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*-journal
+*-wal
+*-shm
+sqlite.db
+sqlite.db-*

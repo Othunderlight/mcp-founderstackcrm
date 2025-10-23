@@ -101,10 +101,9 @@ async def validate_jwt_token(token: str) -> Dict:
         else:
             # Method 2: Use static public key (fallback)
             # Read public key from file for robustness
-            from pathlib import Path
-            BASE_DIR = Path(__file__).resolve().parent.parent.parent
+            
             try:
-                with open(BASE_DIR / 'jwt_public_key.pem', 'r') as f:
+                with open(settings.BASE_DIR / 'jwt_public_key.pem', 'r') as f:
                     public_key_pem = f.read()
                 public_key = serialization.load_pem_public_key(
                     public_key_pem.encode()
