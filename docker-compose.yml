@@ -1,0 +1,28 @@
+# To run migrations, use:
+# docker-compose run --rm migrate
+
+# To run the application, use:
+# docker-compose up -d app
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "10000:10000"
+    env_file:
+      - .env
+    volumes:
+      - ./sqlite.db:/app/sqlite.db
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - ./sqlite.db:/app/sqlite.db
+      - ./migrations:/app/migrations
+    command: ["aerich", "upgrade"]
