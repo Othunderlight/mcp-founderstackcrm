@@ -817,8 +817,8 @@ async def provide_feedback(instant: bool = True) -> Dict:
     Allows the user to provide feedback.
 
     Args:
-        instant: If True, provides a way for instant feedback. 
-                 If False, provides a way for descriptive feedback.
+        instant: If True, provides a way for instant feedback.
+                  If False, provides a way for descriptive feedback.
 
     Returns:
         A dictionary confirming the feedback was received.
@@ -829,6 +829,1225 @@ async def provide_feedback(instant: bool = True) -> Dict:
 
     try:
         tool_output = await tu.provide_feedback(instant)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+
+# Companies
+
+@mcp.tool()
+async def list_companies(filters: Optional[Dict] = None) -> Dict:
+    """
+    Lists all companies for the authenticated user, with optional filters.
+
+    Args:
+        filters: Optional dictionary of query filters (e.g., {"search": "term", "location__icontains": "dubai"}).
+
+    Returns:
+        A dictionary containing a list of companies or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        if filters:
+            tool_output = await tu.list_companies(**filters)
+        else:
+            tool_output = await tu.list_companies()
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def get_company(company_id: str) -> Dict:
+    """
+    Retrieves a specific company by ID.
+
+    Args:
+        company_id: The UUID of the company to retrieve.
+
+    Returns:
+        A dictionary containing the company details or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.get_company(company_id)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def create_company(data: Dict) -> Dict:
+    """
+    Creates a new company.
+
+    Args:
+        data: A dictionary containing company details (e.g., {"name": "Acme Corp", "domain": "acme.com"}).
+
+    Returns:
+        A dictionary containing the created company or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.create_company(data)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def update_company(company_id: str, data: Dict) -> Dict:
+    """
+    Updates an existing company.
+
+    Args:
+        company_id: The UUID of the company to update.
+        data: A dictionary of fields to update (e.g., {"employees": "500-1000"}).
+
+    Returns:
+        A dictionary containing the updated company or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.update_company(company_id, data)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def delete_company(company_id: str) -> Dict:
+    """
+    Deletes a company.
+
+    Args:
+        company_id: The UUID of the company to delete.
+
+    Returns:
+        A dictionary confirming deletion or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.delete_company(company_id)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def import_companies(companies: List[Dict]) -> Dict:
+    """
+    Bulk imports companies.
+
+    Args:
+        companies: A list of company dictionaries to import.
+
+    Returns:
+        A dictionary containing the import results or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.import_companies(companies)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+
+# Notes
+
+@mcp.tool()
+async def list_notes(filters: Optional[Dict] = None) -> Dict:
+    """
+    Lists all notes for the authenticated user, with optional filters.
+
+    Args:
+        filters: Optional dictionary of query filters (e.g., {"search": "term", "title__icontains": "meeting"}).
+
+    Returns:
+        A dictionary containing a list of notes or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        if filters:
+            tool_output = await tu.list_notes(**filters)
+        else:
+            tool_output = await tu.list_notes()
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def get_note(note_id: str) -> Dict:
+    """
+    Retrieves a specific note by ID.
+
+    Args:
+        note_id: The UUID of the note to retrieve.
+
+    Returns:
+        A dictionary containing the note details or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.get_note(note_id)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def create_note(data: Dict) -> Dict:
+    """
+    Creates a new note.
+
+    Args:
+        data: A dictionary containing note details (e.g., {"title": "Meeting Notes", "content": "..."}).
+
+    Returns:
+        A dictionary containing the created note or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.create_note(data)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def update_note(note_id: str, data: Dict) -> Dict:
+    """
+    Updates an existing note.
+
+    Args:
+        note_id: The UUID of the note to update.
+        data: A dictionary of fields to update (e.g., {"content": "Updated content"}).
+
+    Returns:
+        A dictionary containing the updated note or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.update_note(note_id, data)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def delete_note(note_id: str) -> Dict:
+    """
+    Deletes a note.
+
+    Args:
+        note_id: The UUID of the note to delete.
+
+    Returns:
+        A dictionary confirming deletion or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.delete_note(note_id)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def import_notes(notes: List[Dict]) -> Dict:
+    """
+    Bulk imports notes.
+
+    Args:
+        notes: A list of note dictionaries to import.
+
+    Returns:
+        A dictionary containing the import results or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.import_notes(notes)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+
+# People
+
+@mcp.tool()
+async def list_people(filters: Optional[Dict] = None) -> Dict:
+    """
+    Lists all people for the authenticated user, with optional filters.
+
+    Args:
+        filters: Optional dictionary of query filters (e.g., {"search": "ahmed", "stage": "Qualified"}).
+
+    Returns:
+        A dictionary containing a list of people or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        if filters:
+            tool_output = await tu.list_people(**filters)
+        else:
+            tool_output = await tu.list_people()
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def get_person(person_id: str) -> Dict:
+    """
+    Retrieves a specific person by ID.
+
+    Args:
+        person_id: The UUID of the person to retrieve.
+
+    Returns:
+        A dictionary containing the person details or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.get_person(person_id)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def get_person_context(person_id: str, sections: str = "all") -> Dict:
+    """
+    Retrieves related data for a specific person.
+
+    Args:
+        person_id: The UUID of the person.
+        sections: Section to retrieve ("activities", "tasks", "notes", or "all"). Default "all".
+
+    Returns:
+        A dictionary containing the context data or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.get_person_context(person_id, sections)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def create_person(data: Dict) -> Dict:
+    """
+    Creates a new person.
+
+    Args:
+        data: A dictionary containing person details (e.g., {"name": "John Doe", "email": "john@example.com"}).
+
+    Returns:
+        A dictionary containing the created person or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.create_person(data)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def update_person(person_id: str, data: Dict) -> Dict:
+    """
+    Updates an existing person.
+
+    Args:
+        person_id: The UUID of the person to update.
+        data: A dictionary of fields to update (e.g., {"job_title": "Manager"}).
+
+    Returns:
+        A dictionary containing the updated person or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.update_person(person_id, data)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def delete_person(person_id: str) -> Dict:
+    """
+    Deletes a person.
+
+    Args:
+        person_id: The UUID of the person to delete.
+
+    Returns:
+        A dictionary confirming deletion or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.delete_person(person_id)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def import_people(people: List[Dict], auto_create_company: bool = False) -> Dict:
+    """
+    Bulk imports people.
+
+    Args:
+        people: A list of person dictionaries to import.
+        auto_create_company: If True, create companies by name if they don't exist.
+
+    Returns:
+        A dictionary containing the import results or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.import_people(people, auto_create_company)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+
+# Search
+
+@mcp.tool()
+async def global_search(q: str) -> Dict:
+    """
+    Performs a global search across People, Companies, Tasks, and Notes.
+
+    Args:
+        q: The search query string.
+
+    Returns:
+        A dictionary containing relevance-scored results from all models or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.global_search(q)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+
+# Tasks
+
+@mcp.tool()
+async def list_tasks(filters: Optional[Dict] = None) -> Dict:
+    """
+    Lists all tasks for the authenticated user, with optional filters.
+
+    Args:
+        filters: Optional dictionary of query filters (e.g., {"status": "Todo", "due_date__gt": "2024-01-01"}).
+
+    Returns:
+        A dictionary containing a list of tasks or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        if filters:
+            tool_output = await tu.list_tasks(**filters)
+        else:
+            tool_output = await tu.list_tasks()
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def get_task(task_id: str) -> Dict:
+    """
+    Retrieves a specific task by ID.
+
+    Args:
+        task_id: The UUID of the task to retrieve.
+
+    Returns:
+        A dictionary containing the task details or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.get_task(task_id)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def create_task(data: Dict) -> Dict:
+    """
+    Creates a new task.
+
+    Args:
+        data: A dictionary containing task details (e.g., {"title": "Follow up", "status": "Todo"}).
+
+    Returns:
+        A dictionary containing the created task or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.create_task(data)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def update_task(task_id: str, data: Dict) -> Dict:
+    """
+    Updates an existing task.
+
+    Args:
+        task_id: The UUID of the task to update.
+        data: A dictionary of fields to update (e.g., {"status": "Done"}).
+
+    Returns:
+        A dictionary containing the updated task or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.update_task(task_id, data)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def delete_task(task_id: str) -> Dict:
+    """
+    Deletes a task.
+
+    Args:
+        task_id: The UUID of the task to delete.
+
+    Returns:
+        A dictionary confirming deletion or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.delete_task(task_id)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def import_tasks(tasks: List[Dict], auto_create_related_person: bool = False) -> Dict:
+    """
+    Bulk imports tasks.
+
+    Args:
+        tasks: A list of task dictionaries to import.
+        auto_create_related_person: If True, create persons by name if they don't exist.
+
+    Returns:
+        A dictionary containing the import results or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.import_tasks(tasks, auto_create_related_person)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+
+# Activities
+
+@mcp.tool()
+async def list_activities(filters: Optional[Dict] = None) -> Dict:
+    """
+    Lists all activities for the authenticated user, with optional filters.
+
+    Args:
+        filters: Optional dictionary of query filters (e.g., {"type": "call", "channel": "linkedin", "direction": "sent"}).
+
+    Returns:
+        A dictionary containing a list of activities or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        if filters:
+            tool_output = await tu.list_activities(**filters)
+        else:
+            tool_output = await tu.list_activities()
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def create_activity(data: Dict) -> Dict:
+    """
+    Creates a new activity.
+
+    Args:
+        data: A dictionary containing activity details (e.g., {"type": "call", "title": "Discovery Call", "channel": "linkedin", "direction": "sent", "content": "...", "related_person": "PERSON_UUID", "user": "USER_UUID"}).
+                  Fields: type (required), channel, direction, title, content, date, related_person, related_company, user.
+
+    Returns:
+        A dictionary containing the created activity or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.create_activity(data)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def import_activities(activities: List[Dict], auto_create_related_person: bool = False, auto_create_related_company: bool = False) -> Dict:
+    """
+    Bulk imports activities.
+
+    Args:
+        activities: A list of activity dictionaries to import.
+        auto_create_related_person: If True, create persons by name if they don't exist.
+        auto_create_related_company: If True, create companies by name if they don't exist.
+
+    Returns:
+        A dictionary containing the import results or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.import_activities(activities, auto_create_related_person, auto_create_related_company)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+
+# Interaction Types
+
+@mcp.tool()
+async def list_interaction_types(filters: Optional[Dict] = None) -> Dict:
+    """
+    Lists all interaction types for the authenticated user, with optional filters.
+
+    Args:
+        filters: Optional dictionary of query filters (e.g., {"name__icontains": "call"}).
+
+    Returns:
+        A dictionary containing a list of interaction types or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        if filters:
+            tool_output = await tu.list_interaction_types(**filters)
+        else:
+            tool_output = await tu.list_interaction_types()
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def create_interaction_type(data: Dict) -> Dict:
+    """
+    Creates a new interaction type.
+
+    Args:
+        data: A dictionary containing interaction type details (e.g., {"name": "Discovery Call", "description": "...", "color": "#4CAF50", "icon": "phone"}).
+
+    Returns:
+        A dictionary containing the created interaction type or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.create_interaction_type(data)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def get_interaction_type(type_id: str) -> Dict:
+    """
+    Retrieves a specific interaction type by ID.
+
+    Args:
+        type_id: The UUID of the interaction type to retrieve.
+
+    Returns:
+        A dictionary containing the interaction type details or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.get_interaction_type(type_id)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def update_interaction_type(type_id: str, data: Dict) -> Dict:
+    """
+    Updates an existing interaction type.
+
+    Args:
+        type_id: The UUID of the interaction type to update.
+        data: A dictionary of fields to update (e.g., {"description": "Updated description"}).
+
+    Returns:
+        A dictionary containing the updated interaction type or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.update_interaction_type(type_id, data)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def delete_interaction_type(type_id: str) -> Dict:
+    """
+    Deletes an interaction type.
+
+    Args:
+        type_id: The UUID of the interaction type to delete.
+
+    Returns:
+        A dictionary confirming deletion or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.delete_interaction_type(type_id)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+
+# Interactions (Logs)
+
+@mcp.tool()
+async def list_interactions(filters: Optional[Dict] = None) -> Dict:
+    """
+    Lists all interactions for the authenticated user, with optional filters.
+
+    Args:
+        filters: Optional dictionary of query filters (e.g., {"interaction_type": "TYPE_UUID", "related_person": "PERSON_UUID"}).
+
+    Returns:
+        A dictionary containing a list of interactions or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        if filters:
+            tool_output = await tu.list_interactions(**filters)
+        else:
+            tool_output = await tu.list_interactions()
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def create_interaction(data: Dict) -> Dict:
+    """
+    Creates a new interaction.
+
+    Args:
+        data: A dictionary containing interaction details (e.g., {"interaction_type": "TYPE_UUID", "notes": "...", "related_person": "PERSON_UUID"}).
+
+    Returns:
+        A dictionary containing the created interaction or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.create_interaction(data)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def get_interaction(interaction_id: str) -> Dict:
+    """
+    Retrieves a specific interaction by ID.
+
+    Args:
+        interaction_id: The UUID of the interaction to retrieve.
+
+    Returns:
+        A dictionary containing the interaction details or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.get_interaction(interaction_id)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def update_interaction(interaction_id: str, data: Dict) -> Dict:
+    """
+    Updates an existing interaction.
+
+    Args:
+        interaction_id: The UUID of the interaction to update.
+        data: A dictionary of fields to update (e.g., {"notes": "Updated notes"}).
+
+    Returns:
+        A dictionary containing the updated interaction or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.update_interaction(interaction_id, data)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def delete_interaction(interaction_id: str) -> Dict:
+    """
+    Deletes an interaction.
+
+    Args:
+        interaction_id: The UUID of the interaction to delete.
+
+    Returns:
+        A dictionary confirming deletion or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.delete_interaction(interaction_id)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success"
+        }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "user_id": user_info.get("id"),
+            "status": "Failed"
+        }
+
+@mcp.tool()
+async def import_interactions(interactions: List[Dict], auto_create_related_person: bool = False, auto_create_related_company: bool = False) -> Dict:
+    """
+    Bulk imports interactions.
+
+    Args:
+        interactions: A list of interaction dictionaries to import.
+        auto_create_related_person: If True, create persons by name if they don't exist.
+        auto_create_related_company: If True, create companies by name if they don't exist.
+
+    Returns:
+        A dictionary containing the import results or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.import_interactions(interactions, auto_create_related_person, auto_create_related_company)
         return {
             "results": tool_output,
             "user_id": user_info.get("id"),
