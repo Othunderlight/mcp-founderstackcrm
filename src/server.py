@@ -1,5 +1,3 @@
-
-import io
 import asyncio
 import contextlib
 import uvicorn
@@ -9,195 +7,120 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
-import io
-import asyncio
-import contextlib
-import uvicorn
-import logging
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-from starlette.requests import Request
-from starlette.responses import Response
-from tortoise import Tortoise
+from starlette.types import Message
 
 from .auth import AuthMiddleware
 from .config import settings
 from .tools import mcp as tools_server
-from .oauth import create_oauth2_router, get_oauth2_metadata
-import json
+from .oauth import create_oauth2_router, get_oauth2_metadata, cleanup_expired
 
 logger = logging.getLogger(__name__)
 
+
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
-    await Tortoise.init(config=settings.TORTOISE_ORM)
-    await Tortoise.generate_schemas()
+    # Start background cleanup for expired OAuth2 entries
+    cleanup_task = asyncio.create_task(cleanup_expired())
     async with tools_server.session_manager.run():
         yield
-    await Tortoise.close_connections()
+    cleanup_task.cancel()
+
 
 app = FastAPI(lifespan=lifespan)
 
-# Add CORS middleware
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify your actual origins
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
-# Include OAuth2 router
+# OAuth2 routes
 oauth2_router = create_oauth2_router()
 app.include_router(oauth2_router, prefix="", tags=["oauth2"])
 
-# OAuth2 Authorization Server Metadata endpoint
+
+# ── Well-known endpoints ─────────────────────────────────────────────────
+
 @app.get("/.well-known/oauth-authorization-server")
-async def oauth_authorization_server_metadata():
-    """
-    OAuth 2.0 Authorization Server Metadata endpoint.
-    Provides OAuth2 configuration for dynamic client registration and authorization.
-    """
+async def oauth_metadata():
     return get_oauth2_metadata()
 
-# MCP-specific OAuth2 Authorization Server Metadata endpoint
+
 @app.get("/.well-known/oauth-authorization-server/mcp")
-async def oauth_authorization_server_metadata_mcp():
-    """
-    MCP-specific OAuth 2.0 Authorization Server Metadata endpoint.
-    Required by Cursor for OAuth discovery and to show the "Open in Cursor" button.
-    """
+async def oauth_metadata_mcp():
+    """MCP-specific metadata (for Cursor)."""
     return get_oauth2_metadata()
 
-# OpenID Connect Configuration endpoint for MCP
+
 @app.get("/.well-known/openid-configuration/mcp")
-async def openid_configuration_mcp():
-    """
-    OpenID Connect Configuration endpoint for MCP.
-    Required by Gemini CLI for OAuth discovery.
-    """
+async def openid_config_mcp():
+    """OpenID Connect config (for Gemini CLI)."""
+    return get_oauth2_metadata()
+
+
+@app.get("/.well-known/oauth-protected-resource/mcp")
+async def protected_resource_metadata():
+    """Protected Resource Metadata for MCP client discovery."""
     base_url = f"http://127.0.0.1:{settings.PORT}"
     return {
-        "issuer": base_url,
-        "authorization_endpoint": f"{base_url}/oauth2/authorize",
-        "token_endpoint": f"{base_url}/oauth2/token",
-        "userinfo_endpoint": f"{base_url}/oauth2/userinfo",
-        "jwks_uri": settings.JWKS_URL,
-        "registration_endpoint": f"{base_url}/oauth2/register",
-        "scopes_supported": ["openid", "profile", "email"],
-        "response_types_supported": ["code"],
-        "grant_types_supported": ["authorization_code", "client_credentials"],
-        "subject_types_supported": ["public"],
-        "id_token_signing_alg_values_supported": ["RS256"],
-        "token_endpoint_auth_methods_supported": ["client_secret_basic", "client_secret_post", "none"],
-        "claims_supported": ["sub", "iss", "aud", "exp", "iat", "email", "email_verified", "name"],
-        "code_challenge_methods_supported": ["S256", "plain"]
+        "resource": base_url,
+        "authorization_servers": [base_url],
     }
 
-# MCP well-known endpoint
-@app.get("/.well-known/oauth-protected-resource/mcp")
-async def oauth_protected_resource_metadata():
-    """
-    OAuth 2.0 Protected Resource Metadata endpoint for MCP client discovery.
-    Required by the MCP specification for authorization server discovery.
-    """
-    if settings.METADATA_JSON_RESPONSE:
-        response = json.loads(settings.METADATA_JSON_RESPONSE)
-        return response
-    else:
-        # Default metadata response with OAuth2 support
-        base_url = f"http://127.0.0.1:{settings.PORT}"
-        return {
-            "resource": "cccrm-api",
-            "resource_server_metadata": {
-                "authorization_servers": [base_url],
-                "authorization_server_metadata_url": f"{base_url}/.well-known/oauth-authorization-server",
-                "jwks_uri": settings.JWKS_URL,
-                "audience": settings.JWT_AUDIENCE,
-                "issuer": settings.JWT_ISSUER,
-                "oauth2_dynamic_registration_supported": True,
-                "registration_endpoint": f"{base_url}/oauth2/register",
-                "mcp_version": "1.0",
-                "mcp_capabilities": {
-                    "dynamic_client_registration": True,
-                    "pkce_support": True,
-                    "google_oauth_integration": True
-                }
-            }
-        }
+
+# ── Trailing slash normalization ─────────────────────────────────────────
 
 class TrailingSlashMiddleware(BaseHTTPMiddleware):
-    """Middleware to handle trailing slash normalization for all endpoints"""
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        # Define endpoints that should NOT have trailing slashes
-        no_trailing_slash_endpoints = [
-            "/oauth2/register",
-            "/oauth2/authorize", 
-            "/oauth2/callback",
-            "/oauth2/token",
-            "/oauth2/userinfo",
-            "/oauth2/introspect"
+        no_trailing = [
+            "/oauth2/register", "/oauth2/authorize",
+            "/oauth2/callback", "/oauth2/token",
         ]
-        
-        current_path = request.url.path
-        
-        # Check if this is an endpoint that should not have a trailing slash
-        for endpoint in no_trailing_slash_endpoints:
-            if current_path == endpoint + "/":
-                # Redirect to version without trailing slash
+        path = request.url.path
+        for endpoint in no_trailing:
+            if path == endpoint + "/":
                 from starlette.responses import RedirectResponse
-                redirect_url = str(request.url).replace(endpoint + "/", endpoint)
-                logger.info(f"Redirecting {current_path} to {endpoint}")
-                return RedirectResponse(url=redirect_url, status_code=301)
-        
+                return RedirectResponse(
+                    url=str(request.url).replace(endpoint + "/", endpoint),
+                    status_code=301,
+                )
         return await call_next(request)
 
-# Add trailing slash normalization middleware
+
 app.add_middleware(TrailingSlashMiddleware)
 
-from starlette.types import Message, Receive, Send
+
+# ── Request logging (debug) ──────────────────────────────────────────────
+
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        # Step 1: Read the entire body from the original request stream.
-        # This consumes the stream.
         body = await request.body()
 
-        # Step 2: Now you can safely log the details you need.
-        logger.info(f"MCP Request Path: {request.url.path}")
-        logger.info(f"MCP Request Method: {request.method}")
-        logger.info(f"MCP Request Headers: {request.headers}")
+        logger.info(f"MCP Request: {request.method} {request.url.path}")
         if body:
-            logger.info(f"MCP Request Body: {body.decode('utf-8')}")
-        else:
-            logger.info("MCP Request Body: [EMPTY]")
+            logger.debug(f"MCP Request Body: {body.decode('utf-8')}")
 
-
-        # Step 3: Define a new `receive` function. This function will be used by the
-        # FastMCP server to get the request body. It simply returns the body we already captured.
         async def receive() -> Message:
             return {"type": "http.request", "body": body}
 
-        # Step 4: Create a new Request object that the next part of the application will use.
-        # It uses the same 'scope' (metadata) but our new 'receive' function.
         new_request = Request(request.scope, receive)
+        return await call_next(new_request)
 
-        # Step 5: Call the actual application (FastMCP) with the new request object that
-        # contains the re-playable body.
-        response = await call_next(new_request)
-        return response
 
-# Create and mount the MCP server with authentication
+# Mount MCP server with auth
 mcp_server = tools_server.streamable_http_app()
 mcp_server.add_middleware(RequestLoggingMiddleware)
 mcp_server.add_middleware(AuthMiddleware)
 app.mount("/mcp/", mcp_server)
 
 
-
 def main():
     """Main entry point for the MCP server."""
     uvicorn.run(app, host="127.0.0.1", port=settings.PORT, log_level="debug")
+
 
 if __name__ == "__main__":
     main()
