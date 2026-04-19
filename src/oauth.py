@@ -197,7 +197,7 @@ def create_oauth2_router() -> APIRouter:
             "client_name": client.get("client_name", "MCP Client"),
             "callback_url": f"{mcp_server_url}/oauth2/callback",
         })
-        frontend_url = f"{settings.FRONTEND_URL}/mcp/connect?{frontend_params}"
+        frontend_url = f"{settings.FRONTEND_URL}/#/mcp/connect?{frontend_params}"
 
         logger.info(f"Redirecting to frontend for auth: {frontend_url}")
         return RedirectResponse(url=frontend_url, status_code=302)
