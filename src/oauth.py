@@ -10,8 +10,8 @@ import time
 import uuid
 import asyncio
 import logging
-from typing import Dict, Optional
-from urllib.parse import urlencode
+from typing import Dict, Optional, List
+from urllib.parse import urlencode, urlparse
 
 from fastapi import APIRouter, HTTPException, Query, Request, Form
 from fastapi.responses import RedirectResponse, JSONResponse
@@ -20,6 +20,51 @@ from pydantic import BaseModel
 from .config import settings
 
 logger = logging.getLogger(__name__)
+
+# ── Helpers ─────────────────────────────────────────────────────────────
+
+
+def get_origin(url: str) -> str:
+    """Extract origin (scheme://netloc) from a URL."""
+    if not url:
+        return ""
+    parsed = urlparse(url)
+    if not parsed.scheme or not parsed.netloc:
+        return ""
+    return f"{parsed.scheme}://{parsed.netloc}"
+
+
+def is_origin_allowed(origin: str) -> bool:
+    """Check if an origin is allowed based on registered clients and config."""
+    if not origin:
+        return False
+
+    origin = origin.lower().rstrip("/")
+
+    # 1. Allow Frontend
+    frontend_origin = get_origin(settings.FRONTEND_URL).lower().rstrip("/")
+    if origin == frontend_origin:
+        return True
+
+    # 2. Allow localhost for dev (desktop apps like VS Code)
+    parsed_origin = urlparse(origin)
+    if parsed_origin.hostname in ("localhost", "127.0.0.1"):
+        return True
+
+    # 3. Check registered clients
+    for client in registered_clients.values():
+        # Check client_uri if provided
+        if client.get("client_uri"):
+            client_origin = get_origin(client["client_uri"]).lower().rstrip("/")
+            if client_origin == origin:
+                return True
+        # Check origins of redirect_uris
+        for uri in client.get("redirect_uris", []):
+            redirect_origin = get_origin(uri).lower().rstrip("/")
+            if redirect_origin == origin:
+                return True
+
+    return False
 
 # ── In-memory stores (TTL-based, cleaned periodically) ───────────────────
 
@@ -103,6 +148,21 @@ def create_oauth2_router() -> APIRouter:
         req: ClientRegistrationRequest,
     ) -> ClientRegistrationResponse:
         """Register an MCP client dynamically."""
+        # Validate redirect_uris (must be HTTPS or localhost/dev)
+        for uri in req.redirect_uris:
+            parsed = urlparse(uri)
+            is_dev = (
+                parsed.hostname in ("localhost", "127.0.0.1")
+                or uri.startswith("vscode://")
+            )
+            is_https = parsed.scheme == "https"
+
+            if not (is_dev or is_https):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid redirect_uri: {uri}. Must be HTTPS or localhost.",
+                )
+
         client_id = f"mcp_{uuid.uuid4().hex[:16]}"
         client_secret = secrets.token_urlsafe(32)
         now = int(time.time())
@@ -150,6 +210,20 @@ def create_oauth2_router() -> APIRouter:
         # Auto-register unknown clients (for dev tools like MCP Inspector)
         if client_id not in registered_clients:
             if client_id.startswith("mcp_"):
+                # Validate redirect_uri for auto-registration
+                parsed = urlparse(redirect_uri)
+                is_dev = (
+                    parsed.hostname in ("localhost", "127.0.0.1")
+                    or redirect_uri.startswith("vscode://")
+                )
+                is_https = parsed.scheme == "https"
+
+                if not (is_dev or is_https):
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Invalid redirect_uri: {redirect_uri}. Must be HTTPS or localhost.",
+                    )
+
                 registered_clients[client_id] = {
                     "client_secret": "",
                     "client_name": "MCP Client",

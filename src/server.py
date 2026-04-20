@@ -12,9 +12,26 @@ from starlette.types import Message
 from .auth import AuthMiddleware
 from .config import settings
 from .tools import mcp as tools_server
-from .oauth import create_oauth2_router, get_oauth2_metadata, cleanup_expired
+from .oauth import (
+    create_oauth2_router,
+    get_oauth2_metadata,
+    cleanup_expired,
+    is_origin_allowed,
+)
 
 logger = logging.getLogger(__name__)
+
+
+# ── Dynamic CORS ───────────────────────────────────────────────────────────
+
+
+class DynamicCORSMiddleware(CORSMiddleware):
+    """
+    CORS middleware that validates origins dynamically against registered clients.
+    """
+
+    def is_allowed_origin(self, origin: str) -> bool:
+        return is_origin_allowed(origin)
 
 
 @contextlib.asynccontextmanager
@@ -28,10 +45,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# CORS
+# CORS (Replaced allow_origins=["*"] with DynamicCORSMiddleware)
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
+    DynamicCORSMiddleware,
+    allow_origins=[],  # Handled by DynamicCORSMiddleware.is_allowed_origin
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
