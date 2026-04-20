@@ -34,7 +34,7 @@ auth_codes: Dict[str, Dict] = {}
 
 # TTL constants (seconds)
 AUTH_REQUEST_TTL = 600  # 10 minutes
-AUTH_CODE_TTL = 300     # 5 minutes
+AUTH_CODE_TTL = 300  # 5 minutes
 CLIENT_TTL = 86400 * 30  # 30 days
 
 
@@ -44,15 +44,15 @@ async def cleanup_expired():
         now = time.time()
 
         expired_requests = [
-            k for k, v in pending_auth_requests.items()
+            k
+            for k, v in pending_auth_requests.items()
             if now - v["created_at"] > AUTH_REQUEST_TTL
         ]
         for k in expired_requests:
             del pending_auth_requests[k]
 
         expired_codes = [
-            k for k, v in auth_codes.items()
-            if now - v["created_at"] > AUTH_CODE_TTL
+            k for k, v in auth_codes.items() if now - v["created_at"] > AUTH_CODE_TTL
         ]
         for k in expired_codes:
             del auth_codes[k]
@@ -67,6 +67,7 @@ async def cleanup_expired():
 
 
 # ── Pydantic models ─────────────────────────────────────────────────────
+
 
 class ClientRegistrationRequest(BaseModel):
     client_name: str
@@ -91,13 +92,16 @@ class ClientRegistrationResponse(BaseModel):
 
 # ── Router ───────────────────────────────────────────────────────────────
 
+
 def create_oauth2_router() -> APIRouter:
     router = APIRouter()
 
     # ── Dynamic Client Registration ──────────────────────────────────
 
     @router.post("/oauth2/register")
-    async def register_client(req: ClientRegistrationRequest) -> ClientRegistrationResponse:
+    async def register_client(
+        req: ClientRegistrationRequest,
+    ) -> ClientRegistrationResponse:
         """Register an MCP client dynamically."""
         client_id = f"mcp_{uuid.uuid4().hex[:16]}"
         client_secret = secrets.token_urlsafe(32)
@@ -166,7 +170,9 @@ def create_oauth2_router() -> APIRouter:
             redirect_uri.rstrip("/") == allowed.rstrip("/")
             for allowed in client["redirect_uris"]
         )
-        if not valid and redirect_uri.startswith(("http://127.0.0.1:", "http://localhost:", "vscode://")):
+        if not valid and redirect_uri.startswith(
+            ("http://127.0.0.1:", "http://localhost:", "vscode://")
+        ):
             valid = True
             logger.info(f"Allowing dev redirect_uri: {redirect_uri}")
 
@@ -190,13 +196,15 @@ def create_oauth2_router() -> APIRouter:
         }
 
         # Build frontend redirect URL
-        mcp_server_url = f"http://127.0.0.1:{settings.PORT}"
-        frontend_params = urlencode({
-            "auth_id": auth_id,
-            "state": state,
-            "client_name": client.get("client_name", "MCP Client"),
-            "callback_url": f"{mcp_server_url}/oauth2/callback",
-        })
+        mcp_server_url = settings.MCP_PUBLIC_BASE_URL
+        frontend_params = urlencode(
+            {
+                "auth_id": auth_id,
+                "state": state,
+                "client_name": client.get("client_name", "MCP Client"),
+                "callback_url": f"{mcp_server_url}/oauth2/callback",
+            }
+        )
         frontend_url = f"{settings.FRONTEND_URL}/#/mcp/connect?{frontend_params}"
 
         logger.info(f"Redirecting to frontend for auth: {frontend_url}")
@@ -216,7 +224,9 @@ def create_oauth2_router() -> APIRouter:
         """
         auth_request = pending_auth_requests.pop(auth_id, None)
         if not auth_request:
-            raise HTTPException(status_code=400, detail="Invalid or expired auth request")
+            raise HTTPException(
+                status_code=400, detail="Invalid or expired auth request"
+            )
 
         if state and state != auth_request["state"]:
             raise HTTPException(status_code=400, detail="State mismatch")
@@ -231,10 +241,12 @@ def create_oauth2_router() -> APIRouter:
         }
 
         # Redirect back to MCP client with auth code
-        redirect_params = urlencode({
-            "code": code,
-            "state": auth_request["state"],
-        })
+        redirect_params = urlencode(
+            {
+                "code": code,
+                "state": auth_request["state"],
+            }
+        )
         redirect_url = f"{auth_request['redirect_uri']}?{redirect_params}"
 
         logger.info(f"Auth callback successful, redirecting to client: {redirect_url}")
@@ -263,7 +275,9 @@ def create_oauth2_router() -> APIRouter:
 
         code_data = auth_codes.pop(code, None)
         if not code_data:
-            raise HTTPException(status_code=400, detail="Invalid or expired authorization code")
+            raise HTTPException(
+                status_code=400, detail="Invalid or expired authorization code"
+            )
 
         if time.time() - code_data["created_at"] > AUTH_CODE_TTL:
             raise HTTPException(status_code=400, detail="Authorization code expired")
@@ -273,20 +287,23 @@ def create_oauth2_router() -> APIRouter:
 
         logger.info(f"Token exchange successful for client: {code_data['client_id']}")
 
-        return JSONResponse(content={
-            "access_token": code_data["token"],
-            "token_type": "Bearer",
-            "scope": "openid profile email",
-        })
+        return JSONResponse(
+            content={
+                "access_token": code_data["token"],
+                "token_type": "Bearer",
+                "scope": "openid profile email",
+            }
+        )
 
     return router
 
 
 # ── OAuth2 Metadata ─────────────────────────────────────────────────────
 
+
 def get_oauth2_metadata() -> Dict:
     """OAuth2 Authorization Server Metadata."""
-    base_url = f"http://127.0.0.1:{settings.PORT}"
+    base_url = settings.MCP_PUBLIC_BASE_URL
 
     return {
         "issuer": base_url,

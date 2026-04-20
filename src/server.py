@@ -74,10 +74,9 @@ async def openid_config_mcp():
 @app.get("/.well-known/oauth-protected-resource/mcp")
 async def protected_resource_metadata():
     """Protected Resource Metadata for MCP client discovery."""
-    base_url = f"http://127.0.0.1:{settings.PORT}"
     return {
-        "resource": base_url,
-        "authorization_servers": [base_url],
+        "resource": settings.MCP_PUBLIC_BASE_URL + "/mcp/",
+        "authorization_servers": [settings.MCP_PUBLIC_BASE_URL],
     }
 
 
