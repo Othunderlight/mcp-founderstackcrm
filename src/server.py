@@ -45,6 +45,23 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+
+# ── Security Headers ──────────────────────────────────────────────────────
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next) -> Response:
+        response = await call_next(request)
+        # Prevent Clickjacking (sec-2.md Requirement)
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Content-Security-Policy"] = "frame-ancestors 'none'"
+        # Prevent MIME sniffing
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        return response
+
+
+app.add_middleware(SecurityHeadersMiddleware)
+
 # CORS (Replaced allow_origins=["*"] with DynamicCORSMiddleware)
 app.add_middleware(
     DynamicCORSMiddleware,

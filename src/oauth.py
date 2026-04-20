@@ -239,18 +239,14 @@ def create_oauth2_router() -> APIRouter:
 
         client = registered_clients[client_id]
 
-        # Validate redirect_uri (lenient for localhost/dev)
+        # Validate redirect_uri — EXACT string matching (sec-2.md Requirement)
         valid = any(
             redirect_uri.rstrip("/") == allowed.rstrip("/")
             for allowed in client["redirect_uris"]
         )
-        if not valid and redirect_uri.startswith(
-            ("http://127.0.0.1:", "http://localhost:", "vscode://")
-        ):
-            valid = True
-            logger.info(f"Allowing dev redirect_uri: {redirect_uri}")
 
         if not valid:
+            logger.warning(f"Invalid redirect_uri attempt: {redirect_uri}")
             raise HTTPException(status_code=400, detail="Invalid redirect_uri")
 
         if not state:
