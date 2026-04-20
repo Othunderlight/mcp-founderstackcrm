@@ -33,4 +33,4 @@ ENV PATH="/opt/venv/bin:$PATH"
 ENV PYTHONPATH=/app
 
 # Run the application
-CMD ["uvicorn", "src.server:app", "--host", "0.0.0.0", "--port", "10000"]
+CMD ["uvicorn", "src.server:app", "--host", "0.0.0.0", "--port", "8081"]
