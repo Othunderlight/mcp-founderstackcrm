@@ -6,6 +6,7 @@
 
 services:
   app:
+    container_name: founderstack-crm-mcp
     build:
       context: .
       dockerfile: Dockerfile
