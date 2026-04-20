@@ -18,7 +18,7 @@ current_auth_token: ContextVar[Optional[str]] = ContextVar(
     "current_auth_token", default=None
 )
 
-mcp = FastMCP("CCCRM API 🚀", streamable_http_path="/", stateless_http=True)
+mcp = FastMCP("FounderStack CRM 🚀", streamable_http_path="/", stateless_http=True)
 
 
 def get_current_user() -> Optional[Dict]:
