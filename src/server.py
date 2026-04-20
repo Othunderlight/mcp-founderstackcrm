@@ -44,6 +44,7 @@ app.include_router(oauth2_router, prefix="", tags=["oauth2"])
 
 # ── Well-known endpoints ─────────────────────────────────────────────────
 
+
 @app.get("/.well-known/oauth-authorization-server")
 async def oauth_metadata():
     return get_oauth2_metadata()
@@ -73,16 +74,22 @@ async def protected_resource_metadata():
 
 # ── Trailing slash normalization ─────────────────────────────────────────
 
+
 class TrailingSlashMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: RequestResponseEndpoint
+    ) -> Response:
         no_trailing = [
-            "/oauth2/register", "/oauth2/authorize",
-            "/oauth2/callback", "/oauth2/token",
+            "/oauth2/register",
+            "/oauth2/authorize",
+            "/oauth2/callback",
+            "/oauth2/token",
         ]
         path = request.url.path
         for endpoint in no_trailing:
             if path == endpoint + "/":
                 from starlette.responses import RedirectResponse
+
                 return RedirectResponse(
                     url=str(request.url).replace(endpoint + "/", endpoint),
                     status_code=301,
@@ -95,8 +102,11 @@ app.add_middleware(TrailingSlashMiddleware)
 
 # ── Request logging (debug) ──────────────────────────────────────────────
 
+
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: RequestResponseEndpoint
+    ) -> Response:
         body = await request.body()
 
         logger.info(f"MCP Request: {request.method} {request.url.path}")
@@ -119,7 +129,7 @@ app.mount("/mcp/", mcp_server)
 
 def main():
     """Main entry point for the MCP server."""
-    uvicorn.run(app, host="127.0.0.1", port=settings.PORT, log_level="debug")
+    uvicorn.run(app, host="127.0.0.1", port=settings.PORT, log_level="info")
 
 
 if __name__ == "__main__":
