@@ -42,6 +42,15 @@ oauth2_router = create_oauth2_router()
 app.include_router(oauth2_router, prefix="", tags=["oauth2"])
 
 
+# ── Health check endpoint ─────────────────────────────────────────────────
+
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint to verify the service is running."""
+    return {"status": "healthy", "service": "mcp-server"}
+
+
 # ── Well-known endpoints ─────────────────────────────────────────────────
 
 
