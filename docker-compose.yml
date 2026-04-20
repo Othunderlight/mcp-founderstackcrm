@@ -13,16 +13,3 @@ services:
       - "10000:10000"
     env_file:
       - .env
-    volumes:
-      - ./sqlite.db:/app/sqlite.db
-
-  migrate:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    env_file:
-      - .env
-    volumes:
-      - ./sqlite.db:/app/sqlite.db
-      - ./migrations:/app/migrations
-    command: ["aerich", "upgrade"]
