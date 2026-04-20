@@ -90,10 +90,11 @@ async def openid_config_mcp():
 
 @app.get("/.well-known/oauth-protected-resource/mcp")
 async def protected_resource_metadata():
-    """Protected Resource Metadata for MCP client discovery."""
+    """Protected Resource Metadata for MCP client discovery (RFC 9728)."""
     return {
         "resource": settings.MCP_PUBLIC_BASE_URL + "/mcp/",
         "authorization_servers": [settings.MCP_PUBLIC_BASE_URL],
+        "scopes_supported": ["openid", "profile", "email", "mcp:tools"],
     }
 
 
