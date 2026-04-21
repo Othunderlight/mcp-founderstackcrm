@@ -206,7 +206,7 @@ async def import_people(people: list[Dict], auto_create_company: bool = False) -
 async def global_search(q: str) -> Dict:
     """Perform a global search across People, Companies, Tasks, and Notes."""
     try:
-        results = await make_django_request("/api/search/", "GET", data={"q": q})
+        results = await make_django_request("/api/search/", "GET", params={"q": q})
         return {"results": encode(results), "message": "Search completed successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to perform search"}

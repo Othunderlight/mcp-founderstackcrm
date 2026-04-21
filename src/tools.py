@@ -45,6 +45,7 @@ async def make_django_request(
     endpoint: str,
     method: str = "GET",
     data: Optional[Dict] = None,
+    params: Optional[Dict] = None,  # Added params
     user_token: Optional[str] = None,
 ) -> Dict:
     """
@@ -64,17 +65,29 @@ async def make_django_request(
     try:
         async with httpx.AsyncClient() as client:
             if method.upper() == "GET":
-                response = await client.get(url, headers=headers, timeout=30.0)
+                response = await client.get(
+                    url, headers=headers, params=params, timeout=30.0
+                )  # Added params
             elif method.upper() == "POST":
                 response = await client.post(
-                    url, json=data, headers=headers, timeout=30.0
+                    url,
+                    json=data,
+                    headers=headers,
+                    params=params,
+                    timeout=30.0,  # Added params
                 )
             elif method.upper() == "PUT":
                 response = await client.put(
-                    url, json=data, headers=headers, timeout=30.0
+                    url,
+                    json=data,
+                    headers=headers,
+                    params=params,
+                    timeout=30.0,  # Added params
                 )
             elif method.upper() == "DELETE":
-                response = await client.delete(url, headers=headers, timeout=30.0)
+                response = await client.delete(
+                    url, headers=headers, params=params, timeout=30.0
+                )  # Added params
             else:
                 raise ValueError(f"Unsupported HTTP method: {method}")
 
