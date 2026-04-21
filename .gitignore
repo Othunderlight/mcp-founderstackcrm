@@ -226,3 +226,4 @@ sqlite.db
 sqlite.db-*
 *.sh
 docs/
+.*

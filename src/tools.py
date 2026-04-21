@@ -36,6 +36,11 @@ def get_current_token() -> Optional[str]:
     return current_auth_token.get()
 
 
+def is_api_key(token: str) -> bool:
+    """Check if the token is an API key (not a JWT)."""
+    return bool(token) and not token.count(".") == 2
+
+
 async def make_django_request(
     endpoint: str,
     method: str = "GET",
@@ -43,15 +48,18 @@ async def make_django_request(
     user_token: Optional[str] = None,
 ) -> Dict:
     """
-    Make an authenticated request to the Django backend
+    Make an authenticated request to the Django backend.
+    Supports both Bearer tokens (JWT) and API keys.
     """
     url = f"{settings.DJANGO_BASE_URL.rstrip('/')}{endpoint}"
     headers = {}
 
-    # Use provided token or get from context
     token = user_token or get_current_token()
     if token:
-        headers["Authorization"] = f"Bearer {token}"
+        if is_api_key(token):
+            headers["Authorization"] = f"Api-Key {token}"
+        else:
+            headers["Authorization"] = f"Bearer {token}"
 
     try:
         async with httpx.AsyncClient() as client:
