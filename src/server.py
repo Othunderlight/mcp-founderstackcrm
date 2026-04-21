@@ -38,8 +38,7 @@ class DynamicCORSMiddleware(CORSMiddleware):
 async def lifespan(app: FastAPI):
     # Start background cleanup for expired OAuth2 entries
     cleanup_task = asyncio.create_task(cleanup_expired())
-    async with tools_server.session_manager.run():
-        yield
+    yield
     cleanup_task.cancel()
 
 
@@ -164,7 +163,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
 
 # Mount MCP server with auth
-mcp_server = tools_server.streamable_http_app()
+mcp_server = tools_server.http_app(stateless_http=True)
 mcp_server.add_middleware(RequestLoggingMiddleware)
 mcp_server.add_middleware(AuthMiddleware)
 app.mount("/mcp/", mcp_server)

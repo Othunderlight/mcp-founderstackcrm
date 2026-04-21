@@ -4,7 +4,7 @@ from contextvars import ContextVar
 from typing import Dict, List, Optional
 
 import httpx
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 
 from .config import settings
 
@@ -18,7 +18,7 @@ current_auth_token: ContextVar[Optional[str]] = ContextVar(
     "current_auth_token", default=None
 )
 
-mcp = FastMCP("FounderStack CRM 🚀", streamable_http_path="/", stateless_http=True)
+mcp = FastMCP("FounderStack CRM 🚀")
 
 
 def get_current_user() -> Optional[Dict]:
