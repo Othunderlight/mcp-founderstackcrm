@@ -61,7 +61,25 @@ class AuthMiddleware(BaseHTTPMiddleware):
             if request.url.path.startswith(path):
                 return await call_next(request)
 
+        api_key = request.headers.get("Api-Key")
         auth_header = request.headers.get("Authorization")
+
+        if api_key:
+            user_info = await validate_api_key(api_key)
+
+            if user_info:
+                current_auth_token.set(api_key)
+                current_user_context.set(user_info)
+                logger.debug(f"API key authenticated for request: {request.url.path}")
+                return await call_next(request)
+            else:
+                return JSONResponse(
+                    status_code=401,
+                    content={
+                        "error": "invalid_token",
+                        "error_description": "Invalid or expired API key",
+                    },
+                )
 
         if auth_header and auth_header.startswith("Api-Key "):
             api_key = auth_header.split(" ", 1)[1]
