@@ -1,5 +1,7 @@
 from typing import Any, Dict
 
+from toon import encode
+
 from .tools import make_django_request
 
 
@@ -9,7 +11,10 @@ async def list_companies(**filters) -> Dict:
         companies = await make_django_request(
             "/api/companies/", "GET", data=filters if filters else None
         )
-        return {"companies": companies, "message": "Companies retrieved successfully"}
+        return {
+            "companies": encode(companies),
+            "message": "Companies retrieved successfully",
+        }
     except Exception as e:
         return {"error": str(e), "message": "Failed to retrieve companies"}
 
@@ -18,7 +23,7 @@ async def get_company(company_id: str) -> Dict:
     """Retrieve a company by ID."""
     try:
         company = await make_django_request(f"/api/companies/{company_id}/", "GET")
-        return {"company": company, "message": "Company retrieved successfully"}
+        return {"company": encode(company), "message": "Company retrieved successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to retrieve company"}
 
@@ -27,7 +32,7 @@ async def create_company(data: Dict) -> Dict:
     """Create a new company."""
     try:
         company = await make_django_request("/api/companies/", "POST", data=data)
-        return {"company": company, "message": "Company created successfully"}
+        return {"company": encode(company), "message": "Company created successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to create company"}
 
@@ -38,7 +43,7 @@ async def update_company(company_id: str, data: Dict) -> Dict:
         company = await make_django_request(
             f"/api/companies/{company_id}/", "PATCH", data=data
         )
-        return {"company": company, "message": "Company updated successfully"}
+        return {"company": encode(company), "message": "Company updated successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to update company"}
 
@@ -47,7 +52,7 @@ async def delete_company(company_id: str) -> Dict:
     """Delete a company."""
     try:
         result = await make_django_request(f"/api/companies/{company_id}/", "DELETE")
-        return {"result": result, "message": "Company deleted successfully"}
+        return {"result": encode(result), "message": "Company deleted successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to delete company"}
 
@@ -58,7 +63,7 @@ async def import_companies(companies: list[Dict]) -> Dict:
         result = await make_django_request(
             "/api/companies/import/", "POST", data=companies
         )
-        return {"result": result, "message": "Companies imported successfully"}
+        return {"result": encode(result), "message": "Companies imported successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to import companies"}
 
@@ -70,7 +75,7 @@ async def list_notes(**filters) -> Dict:
         notes = await make_django_request(
             "/api/notes/", "GET", data=filters if filters else None
         )
-        return {"notes": notes, "message": "Notes retrieved successfully"}
+        return {"notes": encode(notes), "message": "Notes retrieved successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to retrieve notes"}
 
@@ -79,7 +84,7 @@ async def get_note(note_id: str) -> Dict:
     """Retrieve a note by ID."""
     try:
         note = await make_django_request(f"/api/notes/{note_id}/", "GET")
-        return {"note": note, "message": "Note retrieved successfully"}
+        return {"note": encode(note), "message": "Note retrieved successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to retrieve note"}
 
@@ -88,7 +93,7 @@ async def create_note(data: Dict) -> Dict:
     """Create a new note."""
     try:
         note = await make_django_request("/api/notes/", "POST", data=data)
-        return {"note": note, "message": "Note created successfully"}
+        return {"note": encode(note), "message": "Note created successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to create note"}
 
@@ -97,7 +102,7 @@ async def update_note(note_id: str, data: Dict) -> Dict:
     """Update a note."""
     try:
         note = await make_django_request(f"/api/notes/{note_id}/", "PATCH", data=data)
-        return {"note": note, "message": "Note updated successfully"}
+        return {"note": encode(note), "message": "Note updated successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to update note"}
 
@@ -106,7 +111,7 @@ async def delete_note(note_id: str) -> Dict:
     """Delete a note."""
     try:
         result = await make_django_request(f"/api/notes/{note_id}/", "DELETE")
-        return {"result": result, "message": "Note deleted successfully"}
+        return {"result": encode(result), "message": "Note deleted successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to delete note"}
 
@@ -115,7 +120,7 @@ async def import_notes(notes: list[Dict]) -> Dict:
     """Bulk create notes."""
     try:
         result = await make_django_request("/api/notes/import/", "POST", data=notes)
-        return {"result": result, "message": "Notes imported successfully"}
+        return {"result": encode(result), "message": "Notes imported successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to import notes"}
 
@@ -127,7 +132,7 @@ async def list_people(**filters) -> Dict:
         people = await make_django_request(
             "/api/people/", "GET", data=filters if filters else None
         )
-        return {"people": people, "message": "People retrieved successfully"}
+        return {"people": encode(people), "message": "People retrieved successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to retrieve people"}
 
@@ -136,7 +141,7 @@ async def get_person(person_id: str) -> Dict:
     """Retrieve a person by ID."""
     try:
         person = await make_django_request(f"/api/people/{person_id}/", "GET")
-        return {"person": person, "message": "Person retrieved successfully"}
+        return {"person": encode(person), "message": "Person retrieved successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to retrieve person"}
 
@@ -147,7 +152,10 @@ async def get_person_context(person_id: str, sections: str = "all") -> Dict:
         context = await make_django_request(
             f"/api/people/{person_id}/context/", "GET", data={"section": sections}
         )
-        return {"context": context, "message": "Person context retrieved successfully"}
+        return {
+            "context": encode(context),
+            "message": "Person context retrieved successfully",
+        }
     except Exception as e:
         return {"error": str(e), "message": "Failed to retrieve person context"}
 
@@ -156,7 +164,7 @@ async def create_person(data: Dict) -> Dict:
     """Create a new person."""
     try:
         person = await make_django_request("/api/people/", "POST", data=data)
-        return {"person": person, "message": "Person created successfully"}
+        return {"person": encode(person), "message": "Person created successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to create person"}
 
@@ -167,7 +175,7 @@ async def update_person(person_id: str, data: Dict) -> Dict:
         person = await make_django_request(
             f"/api/people/{person_id}/", "PATCH", data=data
         )
-        return {"person": person, "message": "Person updated successfully"}
+        return {"person": encode(person), "message": "Person updated successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to update person"}
 
@@ -176,7 +184,7 @@ async def delete_person(person_id: str) -> Dict:
     """Delete a person."""
     try:
         result = await make_django_request(f"/api/people/{person_id}/", "DELETE")
-        return {"result": result, "message": "Person deleted successfully"}
+        return {"result": encode(result), "message": "Person deleted successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to delete person"}
 
@@ -189,7 +197,7 @@ async def import_people(people: list[Dict], auto_create_company: bool = False) -
         else:
             data = people
         result = await make_django_request("/api/people/import/", "POST", data=data)
-        return {"result": result, "message": "People imported successfully"}
+        return {"result": encode(result), "message": "People imported successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to import people"}
 
@@ -199,7 +207,7 @@ async def global_search(q: str) -> Dict:
     """Perform a global search across People, Companies, Tasks, and Notes."""
     try:
         results = await make_django_request("/api/search/", "GET", data={"q": q})
-        return {"results": results, "message": "Search completed successfully"}
+        return {"results": encode(results), "message": "Search completed successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to perform search"}
 
@@ -211,7 +219,7 @@ async def list_tasks(**filters) -> Dict:
         tasks = await make_django_request(
             "/api/tasks/", "GET", data=filters if filters else None
         )
-        return {"tasks": tasks, "message": "Tasks retrieved successfully"}
+        return {"tasks": encode(tasks), "message": "Tasks retrieved successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to retrieve tasks"}
 
@@ -220,7 +228,7 @@ async def get_task(task_id: str) -> Dict:
     """Retrieve a task by ID."""
     try:
         task = await make_django_request(f"/api/tasks/{task_id}/", "GET")
-        return {"task": task, "message": "Task retrieved successfully"}
+        return {"task": encode(task), "message": "Task retrieved successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to retrieve task"}
 
@@ -229,7 +237,7 @@ async def create_task(data: Dict) -> Dict:
     """Create a new task."""
     try:
         task = await make_django_request("/api/tasks/", "POST", data=data)
-        return {"task": task, "message": "Task created successfully"}
+        return {"task": encode(task), "message": "Task created successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to create task"}
 
@@ -238,7 +246,7 @@ async def update_task(task_id: str, data: Dict) -> Dict:
     """Update a task."""
     try:
         task = await make_django_request(f"/api/tasks/{task_id}/", "PATCH", data=data)
-        return {"task": task, "message": "Task updated successfully"}
+        return {"task": encode(task), "message": "Task updated successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to update task"}
 
@@ -247,7 +255,7 @@ async def delete_task(task_id: str) -> Dict:
     """Delete a task."""
     try:
         result = await make_django_request(f"/api/tasks/{task_id}/", "DELETE")
-        return {"result": result, "message": "Task deleted successfully"}
+        return {"result": encode(result), "message": "Task deleted successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to delete task"}
 
@@ -262,7 +270,7 @@ async def import_tasks(
         else:
             data = tasks
         result = await make_django_request("/api/tasks/import/", "POST", data=data)
-        return {"result": result, "message": "Tasks imported successfully"}
+        return {"result": encode(result), "message": "Tasks imported successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to import tasks"}
 
@@ -275,7 +283,7 @@ async def list_activities(**filters) -> Dict:
             "/api/activities/", "GET", data=filters if filters else None
         )
         return {
-            "activities": activities,
+            "activities": encode(activities),
             "message": "Activities retrieved successfully",
         }
     except Exception as e:
@@ -286,7 +294,10 @@ async def create_activity(data: Dict) -> Dict:
     """Create a new activity."""
     try:
         activity = await make_django_request("/api/activities/", "POST", data=data)
-        return {"activity": activity, "message": "Activity created successfully"}
+        return {
+            "activity": encode(activity),
+            "message": "Activity created successfully",
+        }
     except Exception as e:
         return {"error": str(e), "message": "Failed to create activity"}
 
@@ -308,7 +319,7 @@ async def import_activities(
         else:
             data = activities
         result = await make_django_request("/api/activities/import/", "POST", data=data)
-        return {"result": result, "message": "Activities imported successfully"}
+        return {"result": encode(result), "message": "Activities imported successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to import activities"}
 
@@ -321,7 +332,7 @@ async def list_interaction_types(**filters) -> Dict:
             "/api/interaction-types/", "GET", data=filters if filters else None
         )
         return {
-            "interaction_types": types,
+            "interaction_types": encode(types),
             "message": "Interaction types retrieved successfully",
         }
     except Exception as e:
@@ -335,7 +346,7 @@ async def create_interaction_type(data: Dict) -> Dict:
             "/api/interaction-types/", "POST", data=data
         )
         return {
-            "interaction_type": interaction_type,
+            "interaction_type": encode(interaction_type),
             "message": "Interaction type created successfully",
         }
     except Exception as e:
@@ -349,7 +360,7 @@ async def get_interaction_type(type_id: str) -> Dict:
             f"/api/interaction-types/{type_id}/", "GET"
         )
         return {
-            "interaction_type": interaction_type,
+            "interaction_type": encode(interaction_type),
             "message": "Interaction type retrieved successfully",
         }
     except Exception as e:
@@ -363,7 +374,7 @@ async def update_interaction_type(type_id: str, data: Dict) -> Dict:
             f"/api/interaction-types/{type_id}/", "PATCH", data=data
         )
         return {
-            "interaction_type": interaction_type,
+            "interaction_type": encode(interaction_type),
             "message": "Interaction type updated successfully",
         }
     except Exception as e:
@@ -376,7 +387,10 @@ async def delete_interaction_type(type_id: str) -> Dict:
         result = await make_django_request(
             f"/api/interaction-types/{type_id}/", "DELETE"
         )
-        return {"result": result, "message": "Interaction type deleted successfully"}
+        return {
+            "result": encode(result),
+            "message": "Interaction type deleted successfully",
+        }
     except Exception as e:
         return {"error": str(e), "message": "Failed to delete interaction type"}
 
@@ -389,7 +403,7 @@ async def list_interactions(**filters) -> Dict:
             "/api/interactions/", "GET", data=filters if filters else None
         )
         return {
-            "interactions": interactions,
+            "interactions": encode(interactions),
             "message": "Interactions retrieved successfully",
         }
     except Exception as e:
@@ -401,7 +415,7 @@ async def create_interaction(data: Dict) -> Dict:
     try:
         interaction = await make_django_request("/api/interactions/", "POST", data=data)
         return {
-            "interaction": interaction,
+            "interaction": encode(interaction),
             "message": "Interaction created successfully",
         }
     except Exception as e:
@@ -415,7 +429,7 @@ async def get_interaction(interaction_id: str) -> Dict:
             f"/api/interactions/{interaction_id}/", "GET"
         )
         return {
-            "interaction": interaction,
+            "interaction": encode(interaction),
             "message": "Interaction retrieved successfully",
         }
     except Exception as e:
@@ -429,7 +443,7 @@ async def update_interaction(interaction_id: str, data: Dict) -> Dict:
             f"/api/interactions/{interaction_id}/", "PATCH", data=data
         )
         return {
-            "interaction": interaction,
+            "interaction": encode(interaction),
             "message": "Interaction updated successfully",
         }
     except Exception as e:
@@ -442,7 +456,7 @@ async def delete_interaction(interaction_id: str) -> Dict:
         result = await make_django_request(
             f"/api/interactions/{interaction_id}/", "DELETE"
         )
-        return {"result": result, "message": "Interaction deleted successfully"}
+        return {"result": encode(result), "message": "Interaction deleted successfully"}
     except Exception as e:
         return {"error": str(e), "message": "Failed to delete interaction"}
 
@@ -466,6 +480,9 @@ async def import_interactions(
         result = await make_django_request(
             "/api/interactions/import/", "POST", data=data
         )
-        return {"result": result, "message": "Interactions imported successfully"}
+        return {
+            "result": encode(result),
+            "message": "Interactions imported successfully",
+        }
     except Exception as e:
         return {"error": str(e), "message": "Failed to import interactions"}
