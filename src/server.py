@@ -34,15 +34,11 @@ class DynamicCORSMiddleware(CORSMiddleware):
         return is_origin_allowed(origin)
 
 
-@contextlib.asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Start background cleanup for expired OAuth2 entries
-    cleanup_task = asyncio.create_task(cleanup_expired())
-    yield
-    cleanup_task.cancel()
+# Create MCP server first
+mcp_server = tools_server.http_app(path="/", stateless_http=True)
 
-
-app = FastAPI(lifespan=lifespan)
+# Create FastAPI app with MCP lifespan (required for FastMCP 3.0)
+app = FastAPI(lifespan=mcp_server.lifespan)
 
 
 # ── Security Headers ──────────────────────────────────────────────────────
@@ -162,11 +158,12 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         return await call_next(new_request)
 
 
-# Mount MCP server with auth
-mcp_server = tools_server.http_app(stateless_http=True)
+# Add middleware to MCP server
 mcp_server.add_middleware(RequestLoggingMiddleware)
 mcp_server.add_middleware(AuthMiddleware)
-app.mount("/mcp/", mcp_server)
+
+# Mount MCP server
+app.mount("/mcp", mcp_server)
 
 
 def main():
