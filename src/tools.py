@@ -5,6 +5,7 @@ from typing import Dict, List, Optional
 
 import httpx
 from fastmcp import FastMCP
+from fastmcp.server.transforms.search import BM25SearchTransform
 
 from .config import settings
 
@@ -19,6 +20,10 @@ current_auth_token: ContextVar[Optional[str]] = ContextVar(
 )
 
 mcp = FastMCP("FounderStack CRM 🚀")
+
+# Add BM25 search transform for dynamic tool discovery
+mcp.add_transform(BM25SearchTransform())
+# TODO: Add always_visible for critical tools when implementing them later, e.g., get_user_profile
 
 
 def get_current_user() -> Optional[Dict]:
