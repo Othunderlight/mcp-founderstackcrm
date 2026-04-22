@@ -9,7 +9,7 @@ async def list_companies(**filters) -> Dict:
     """List/search companies."""
     try:
         companies = await make_django_request(
-            "/api/companies/", "GET", data=filters if filters else None
+            "/api/companies/", "GET", params=filters if filters else None
         )
         return {
             "companies": encode(companies),
@@ -73,7 +73,7 @@ async def list_notes(**filters) -> Dict:
     """List/search notes."""
     try:
         notes = await make_django_request(
-            "/api/notes/", "GET", data=filters if filters else None
+            "/api/notes/", "GET", params=filters if filters else None
         )
         return {"notes": encode(notes), "message": "Notes retrieved successfully"}
     except Exception as e:
@@ -130,7 +130,7 @@ async def list_people(**filters) -> Dict:
     """List/search people."""
     try:
         people = await make_django_request(
-            "/api/people/", "GET", data=filters if filters else None
+            "/api/people/", "GET", params=filters if filters else None
         )
         return {"people": encode(people), "message": "People retrieved successfully"}
     except Exception as e:
@@ -150,7 +150,7 @@ async def get_person_context(person_id: str, sections: str = "all") -> Dict:
     """Get related data for a person."""
     try:
         context = await make_django_request(
-            f"/api/people/{person_id}/context/", "GET", data={"section": sections}
+            f"/api/people/{person_id}/context/", "GET", params={"sections": sections}
         )
         return {
             "context": encode(context),
@@ -217,7 +217,7 @@ async def list_tasks(**filters) -> Dict:
     """List/search tasks."""
     try:
         tasks = await make_django_request(
-            "/api/tasks/", "GET", data=filters if filters else None
+            "/api/tasks/", "GET", params=filters if filters else None
         )
         return {"tasks": encode(tasks), "message": "Tasks retrieved successfully"}
     except Exception as e:
@@ -280,7 +280,7 @@ async def list_activities(**filters) -> Dict:
     """List/search activities."""
     try:
         activities = await make_django_request(
-            "/api/activities/", "GET", data=filters if filters else None
+            "/api/activities/", "GET", params=filters if filters else None
         )
         return {
             "activities": encode(activities),
@@ -329,7 +329,7 @@ async def list_interaction_types(**filters) -> Dict:
     """List/search interaction types."""
     try:
         types = await make_django_request(
-            "/api/interaction-types/", "GET", data=filters if filters else None
+            "/api/interaction-types/", "GET", params=filters if filters else None
         )
         return {
             "interaction_types": encode(types),
@@ -400,7 +400,7 @@ async def list_interactions(**filters) -> Dict:
     """List/search interactions."""
     try:
         interactions = await make_django_request(
-            "/api/interactions/", "GET", data=filters if filters else None
+            "/api/interactions/", "GET", params=filters if filters else None
         )
         return {
             "interactions": encode(interactions),
