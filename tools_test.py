@@ -188,7 +188,7 @@ async def test_list_activities():
 
 
 async def test_create_activity():
-    activity_data = {"type": "call", "title": f"Test Activity {uuid.uuid4().hex[:6]}"}
+    activity_data = {"type": "call", "title": f"Test Activity {uuid.uuid4().hex[:6]}", "content": "Test content"}
     result = await make_django_request("/api/activities/", "POST", data=activity_data, user_token=API_KEY)
     activity_id = result.get("id")
     print(f"create_activity: OK - id={activity_id}")
