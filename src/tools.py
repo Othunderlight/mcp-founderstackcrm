@@ -92,6 +92,9 @@ async def make_django_request(
                 raise ValueError(f"Unsupported HTTP method: {method}")
 
             response.raise_for_status()
+            # DELETE returns 204 No Content
+            if response.status_code == 204:
+                return {}
             return response.json()
 
     except httpx.HTTPStatusError as e:
