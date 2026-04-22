@@ -302,6 +302,35 @@ async def create_activity(data: Dict) -> Dict:
         return {"error": str(e), "message": "Failed to create activity"}
 
 
+async def get_activity(activity_id: str) -> Dict:
+    """Retrieve an activity by ID."""
+    try:
+        activity = await make_django_request(f"/api/activities/{activity_id}/", "GET")
+        return {"activity": encode(activity), "message": "Activity retrieved successfully"}
+    except Exception as e:
+        return {"error": str(e), "message": "Failed to retrieve activity"}
+
+
+async def update_activity(activity_id: str, data: Dict) -> Dict:
+    """Update an activity."""
+    try:
+        activity = await make_django_request(
+            f"/api/activities/{activity_id}/", "PATCH", data=data
+        )
+        return {"activity": encode(activity), "message": "Activity updated successfully"}
+    except Exception as e:
+        return {"error": str(e), "message": "Failed to update activity"}
+
+
+async def delete_activity(activity_id: str) -> Dict:
+    """Delete an activity."""
+    try:
+        result = await make_django_request(f"/api/activities/{activity_id}/", "DELETE")
+        return {"result": encode(result), "message": "Activity deleted successfully"}
+    except Exception as e:
+        return {"error": str(e), "message": "Failed to delete activity"}
+
+
 async def import_activities(
     activities: list[Dict],
     auto_create_related_person: bool = False,

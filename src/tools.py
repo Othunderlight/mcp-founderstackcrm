@@ -989,6 +989,85 @@ async def create_activity(data: Dict) -> Dict:
 
 
 @mcp.tool()
+async def get_activity(activity_id: str) -> Dict:
+    """
+    Retrieves a specific activity by ID.
+
+    Args:
+        activity_id: The UUID of the activity to retrieve.
+
+    Returns:
+        A dictionary containing the activity details or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.get_activity(activity_id)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success",
+        }
+    except Exception as e:
+        return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
+
+
+@mcp.tool()
+async def update_activity(activity_id: str, data: Dict) -> Dict:
+    """
+    Updates an existing activity.
+
+    Args:
+        activity_id: The UUID of the activity to update.
+        data: A dictionary of fields to update (e.g., {"title": "Updated title", "content": "Updated content"}).
+
+    Returns:
+        A dictionary containing the updated activity or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.update_activity(activity_id, data)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success",
+        }
+    except Exception as e:
+        return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
+
+
+@mcp.tool()
+async def delete_activity(activity_id: str) -> Dict:
+    """
+    Deletes an activity.
+
+    Args:
+        activity_id: The UUID of the activity to delete.
+
+    Returns:
+        A dictionary confirming deletion or an error message.
+    """
+    user_info = get_current_user()
+    if not user_info:
+        raise Exception("User not authenticated")
+
+    try:
+        tool_output = await tu.delete_activity(activity_id)
+        return {
+            "results": tool_output,
+            "user_id": user_info.get("id"),
+            "status": "success",
+        }
+    except Exception as e:
+        return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
+
+
+@mcp.tool()
 async def import_activities(
     activities: List[Dict],
     auto_create_related_person: bool = False,
