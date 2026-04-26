@@ -107,8 +107,8 @@ async def make_django_request(
         raise Exception(f"Request to Django backend failed: {str(e)}")
 
 
-@mcp.tool()
-async def get_user_profile() -> Dict:
+# @mcp.tool()
+# async def get_user_profile() -> Dict:
     """Get the current authenticated user's profile information"""
     user_info = get_current_user()
     if not user_info:
@@ -144,8 +144,8 @@ async def tool_function(args):
     return "Example Tool Call"
 
 
-@mcp.tool()
-async def example_tool() -> Dict:
+# @mcp.tool()
+# async def example_tool() -> Dict:
     """
     What does the tool do
 
@@ -331,8 +331,8 @@ async def update_company(company_id: str, data: Dict) -> Dict:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
 
-@mcp.tool()
-async def delete_company(company_id: str) -> Dict:
+# @mcp.tool()
+# async def delete_company(company_id: str) -> Dict:
     """
     Deletes a company.
 
@@ -357,8 +357,8 @@ async def delete_company(company_id: str) -> Dict:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
 
-@mcp.tool()
-async def import_companies(companies: List[Dict]) -> Dict:
+# @mcp.tool()
+# async def import_companies(companies: List[Dict]) -> Dict:
     """
     Bulk imports companies.
 
@@ -415,8 +415,8 @@ async def list_notes(filters: Optional[Dict] = None) -> Dict:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
 
-@mcp.tool()
-async def get_note(note_id: str) -> Dict:
+# @mcp.tool()
+# async def get_note(note_id: str) -> Dict:
     """
     Retrieves a specific note by ID.
 
@@ -494,8 +494,8 @@ async def update_note(note_id: str, data: Dict) -> Dict:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
 
-@mcp.tool()
-async def delete_note(note_id: str) -> Dict:
+# @mcp.tool()
+# async def delete_note(note_id: str) -> Dict:
     """
     Deletes a note.
 
@@ -520,8 +520,8 @@ async def delete_note(note_id: str) -> Dict:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
 
-@mcp.tool()
-async def import_notes(notes: List[Dict]) -> Dict:
+# @mcp.tool()
+# async def import_notes(notes: List[Dict]) -> Dict:
     """
     Bulk imports notes.
 
@@ -578,8 +578,8 @@ async def list_people(filters: Optional[Dict] = None) -> Dict:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
 
-@mcp.tool()
-async def get_person(person_id: str) -> Dict:
+# @mcp.tool()
+# async def get_person(person_id: str) -> Dict:
     """
     Retrieves a specific person by ID.
 
@@ -684,8 +684,8 @@ async def update_person(person_id: str, data: Dict) -> Dict:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
 
-@mcp.tool()
-async def delete_person(person_id: str) -> Dict:
+# @mcp.tool()
+# async def delete_person(person_id: str) -> Dict:
     """
     Deletes a person.
 
@@ -710,8 +710,8 @@ async def delete_person(person_id: str) -> Dict:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
 
-@mcp.tool()
-async def import_people(people: List[Dict], auto_create_company: bool = False) -> Dict:
+# @mcp.tool()
+# async def import_people(people: List[Dict], auto_create_company: bool = False) -> Dict:
     """
     Bulk imports people.
 
@@ -798,8 +798,8 @@ async def list_tasks(filters: Optional[Dict] = None) -> Dict:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
 
-@mcp.tool()
-async def get_task(task_id: str) -> Dict:
+# @mcp.tool()
+# async def get_task(task_id: str) -> Dict:
     """
     Retrieves a specific task by ID.
 
@@ -877,8 +877,8 @@ async def update_task(task_id: str, data: Dict) -> Dict:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
 
-@mcp.tool()
-async def delete_task(task_id: str) -> Dict:
+# @mcp.tool()
+# async def delete_task(task_id: str) -> Dict:
     """
     Deletes a task.
 
@@ -903,10 +903,10 @@ async def delete_task(task_id: str) -> Dict:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
 
-@mcp.tool()
-async def import_tasks(
-    tasks: List[Dict], auto_create_related_person: bool = False
-) -> Dict:
+# @mcp.tool()
+# async def import_tasks(
+#     tasks: List[Dict], auto_create_related_person: bool = False
+# ) -> Dict:
     """
     Bulk imports tasks.
 
@@ -991,8 +991,8 @@ async def create_activity(data: Dict) -> Dict:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
 
-@mcp.tool()
-async def get_activity(activity_id: str) -> Dict:
+# @mcp.tool()
+# async def get_activity(activity_id: str) -> Dict:
     """
     Retrieves a specific activity by ID.
 
@@ -1044,8 +1044,8 @@ async def update_activity(activity_id: str, data: Dict) -> Dict:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
 
-@mcp.tool()
-async def delete_activity(activity_id: str) -> Dict:
+# @mcp.tool()
+# async def delete_activity(activity_id: str) -> Dict:
     """
     Deletes an activity.
 
@@ -1070,12 +1070,12 @@ async def delete_activity(activity_id: str) -> Dict:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
 
-@mcp.tool()
-async def import_activities(
-    activities: List[Dict],
-    auto_create_related_person: bool = False,
-    auto_create_related_company: bool = False,
-) -> Dict:
+# @mcp.tool()
+# async def import_activities(
+#     activities: List[Dict],
+#     auto_create_related_person: bool = False,
+#     auto_create_related_company: bool = False,
+# ) -> Dict:
     """
     Bulk imports activities.
 
@@ -1107,8 +1107,8 @@ async def import_activities(
 # Interaction Types
 
 
-@mcp.tool()
-async def list_interaction_types(filters: Optional[Dict] = None) -> Dict:
+# @mcp.tool()
+# async def list_interaction_types(filters: Optional[Dict] = None) -> Dict:
     """
     Lists all interaction types for the authenticated user, with optional filters.
 
@@ -1162,8 +1162,8 @@ async def create_interaction_type(data: Dict) -> Dict:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
 
-@mcp.tool()
-async def get_interaction_type(type_id: str) -> Dict:
+# @mcp.tool()
+# async def get_interaction_type(type_id: str) -> Dict:
     """
     Retrieves a specific interaction type by ID.
 
@@ -1215,8 +1215,8 @@ async def update_interaction_type(type_id: str, data: Dict) -> Dict:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
 
-@mcp.tool()
-async def delete_interaction_type(type_id: str) -> Dict:
+# @mcp.tool()
+# async def delete_interaction_type(type_id: str) -> Dict:
     """
     Deletes an interaction type.
 
@@ -1244,8 +1244,8 @@ async def delete_interaction_type(type_id: str) -> Dict:
 # Interactions (Logs)
 
 
-@mcp.tool()
-async def list_interactions(filters: Optional[Dict] = None) -> Dict:
+# @mcp.tool()
+# async def list_interactions(filters: Optional[Dict] = None) -> Dict:
     """
     Lists all interactions for the authenticated user, with optional filters.
 
@@ -1299,8 +1299,8 @@ async def create_interaction(data: Dict) -> Dict:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
 
-@mcp.tool()
-async def get_interaction(interaction_id: str) -> Dict:
+# @mcp.tool()
+# async def get_interaction(interaction_id: str) -> Dict:
     """
     Retrieves a specific interaction by ID.
 
@@ -1352,8 +1352,8 @@ async def update_interaction(interaction_id: str, data: Dict) -> Dict:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
 
-@mcp.tool()
-async def delete_interaction(interaction_id: str) -> Dict:
+# @mcp.tool()
+# async def delete_interaction(interaction_id: str) -> Dict:
     """
     Deletes an interaction.
 
@@ -1378,12 +1378,12 @@ async def delete_interaction(interaction_id: str) -> Dict:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
 
-@mcp.tool()
-async def import_interactions(
-    interactions: List[Dict],
-    auto_create_related_person: bool = False,
-    auto_create_related_company: bool = False,
-) -> Dict:
+# @mcp.tool()
+# async def import_interactions(
+#     interactions: List[Dict],
+#     auto_create_related_person: bool = False,
+#     auto_create_related_company: bool = False,
+# ) -> Dict:
     """
     Bulk imports interactions.
 
