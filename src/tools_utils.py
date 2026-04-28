@@ -150,7 +150,7 @@ async def get_person_context(person_id: str, sections: str = "all") -> Dict:
     """Get related data for a person."""
     try:
         context = await make_django_request(
-            f"/api/people/{person_id}/context/", "GET", params={"sections": sections}
+            f"/api/people/{person_id}/context/ai/", "GET", params={"sections": sections}
         )
         return {
             "context": encode(context),
@@ -306,7 +306,10 @@ async def get_activity(activity_id: str) -> Dict:
     """Retrieve an activity by ID."""
     try:
         activity = await make_django_request(f"/api/activities/{activity_id}/", "GET")
-        return {"activity": encode(activity), "message": "Activity retrieved successfully"}
+        return {
+            "activity": encode(activity),
+            "message": "Activity retrieved successfully",
+        }
     except Exception as e:
         return {"error": str(e), "message": "Failed to retrieve activity"}
 
@@ -317,7 +320,10 @@ async def update_activity(activity_id: str, data: Dict) -> Dict:
         activity = await make_django_request(
             f"/api/activities/{activity_id}/", "PATCH", data=data
         )
-        return {"activity": encode(activity), "message": "Activity updated successfully"}
+        return {
+            "activity": encode(activity),
+            "message": "Activity updated successfully",
+        }
     except Exception as e:
         return {"error": str(e), "message": "Failed to update activity"}
 
