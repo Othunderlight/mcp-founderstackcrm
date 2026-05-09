@@ -224,12 +224,20 @@ from . import tools_utils as tu
 
 
 @mcp.tool()
-async def list_companies(filters: Optional[Dict] = None) -> Dict:
+async def list_companies(
+    search: Optional[str] = None,
+    page: Optional[int] = None,
+    page_size: Optional[int] = None,
+    filters: Optional[Dict] = None,
+) -> Dict:
     """
     Lists all companies for the authenticated user, with optional filters.
 
     Args:
-        filters: Optional dictionary of query filters (e.g., {"search": "term", "location__icontains": "dubai"}).
+        search: Optional search term.
+        page: Optional page number.
+        page_size: Optional number of items per page.
+        filters: Optional dictionary of additional query filters.
 
     Returns:
         A dictionary containing a list of companies or an error message.
@@ -239,10 +247,15 @@ async def list_companies(filters: Optional[Dict] = None) -> Dict:
         raise Exception("User not authenticated")
 
     try:
-        if filters:
-            tool_output = await tu.list_companies(**filters)
-        else:
-            tool_output = await tu.list_companies()
+        all_filters = filters or {}
+        if search:
+            all_filters["search"] = search
+        if page:
+            all_filters["page"] = page
+        if page_size:
+            all_filters["page_size"] = page_size
+
+        tool_output = await tu.list_companies(**all_filters)
         return {
             "results": tool_output,
             "user_id": user_info.get("id"),
@@ -387,12 +400,20 @@ async def update_company(company_id: str, data: Dict) -> Dict:
 
 
 @mcp.tool()
-async def list_notes(filters: Optional[Dict] = None) -> Dict:
+async def list_notes(
+    search: Optional[str] = None,
+    page: Optional[int] = None,
+    page_size: Optional[int] = None,
+    filters: Optional[Dict] = None,
+) -> Dict:
     """
     Lists all notes for the authenticated user, with optional filters.
 
     Args:
-        filters: Optional dictionary of query filters (e.g., {"search": "term", "title__icontains": "meeting"}).
+        search: Optional search term.
+        page: Optional page number.
+        page_size: Optional number of items per page.
+        filters: Optional dictionary of query filters.
 
     Returns:
         A dictionary containing a list of notes or an error message.
@@ -402,10 +423,15 @@ async def list_notes(filters: Optional[Dict] = None) -> Dict:
         raise Exception("User not authenticated")
 
     try:
-        if filters:
-            tool_output = await tu.list_notes(**filters)
-        else:
-            tool_output = await tu.list_notes()
+        all_filters = filters or {}
+        if search:
+            all_filters["search"] = search
+        if page:
+            all_filters["page"] = page
+        if page_size:
+            all_filters["page_size"] = page_size
+
+        tool_output = await tu.list_notes(**all_filters)
         return {
             "results": tool_output,
             "user_id": user_info.get("id"),
@@ -550,12 +576,20 @@ async def update_note(note_id: str, data: Dict) -> Dict:
 
 
 @mcp.tool()
-async def list_people(filters: Optional[Dict] = None) -> Dict:
+async def list_people(
+    search: Optional[str] = None,
+    page: Optional[int] = None,
+    page_size: Optional[int] = None,
+    filters: Optional[Dict] = None,
+) -> Dict:
     """
     Lists all people for the authenticated user, with optional filters.
 
     Args:
-        filters: Optional dictionary of query filters (e.g., {"search": "ahmed", "stage": "Qualified"}).
+        search: Optional search term.
+        page: Optional page number.
+        page_size: Optional number of items per page.
+        filters: Optional dictionary of query filters.
 
     Returns:
         A dictionary containing a list of people or an error message.
@@ -565,10 +599,15 @@ async def list_people(filters: Optional[Dict] = None) -> Dict:
         raise Exception("User not authenticated")
 
     try:
-        if filters:
-            tool_output = await tu.list_people(**filters)
-        else:
-            tool_output = await tu.list_people()
+        all_filters = filters or {}
+        if search:
+            all_filters["search"] = search
+        if page:
+            all_filters["page"] = page
+        if page_size:
+            all_filters["page_size"] = page_size
+
+        tool_output = await tu.list_people(**all_filters)
         return {
             "results": tool_output,
             "user_id": user_info.get("id"),
@@ -770,12 +809,20 @@ async def global_search(q: str) -> Dict:
 
 
 @mcp.tool()
-async def list_tasks(filters: Optional[Dict] = None) -> Dict:
+async def list_tasks(
+    search: Optional[str] = None,
+    page: Optional[int] = None,
+    page_size: Optional[int] = None,
+    filters: Optional[Dict] = None,
+) -> Dict:
     """
     Lists all tasks for the authenticated user, with optional filters.
 
     Args:
-        filters: Optional dictionary of query filters (e.g., {"status": "Todo", "due_date__gt": "2024-01-01"}).
+        search: Optional search term.
+        page: Optional page number.
+        page_size: Optional number of items per page.
+        filters: Optional dictionary of query filters.
 
     Returns:
         A dictionary containing a list of tasks or an error message.
@@ -785,10 +832,15 @@ async def list_tasks(filters: Optional[Dict] = None) -> Dict:
         raise Exception("User not authenticated")
 
     try:
-        if filters:
-            tool_output = await tu.list_tasks(**filters)
-        else:
-            tool_output = await tu.list_tasks()
+        all_filters = filters or {}
+        if search:
+            all_filters["search"] = search
+        if page:
+            all_filters["page"] = page
+        if page_size:
+            all_filters["page_size"] = page_size
+
+        tool_output = await tu.list_tasks(**all_filters)
         return {
             "results": tool_output,
             "user_id": user_info.get("id"),
@@ -936,12 +988,20 @@ async def update_task(task_id: str, data: Dict) -> Dict:
 
 
 @mcp.tool()
-async def list_activities(filters: Optional[Dict] = None) -> Dict:
+async def list_activities(
+    search: Optional[str] = None,
+    page: Optional[int] = None,
+    page_size: Optional[int] = None,
+    filters: Optional[Dict] = None,
+) -> Dict:
     """
     Lists all activities for the authenticated user, with optional filters.
 
     Args:
-        filters: Optional dictionary of query filters (e.g., {"type": "call", "channel": "linkedin", "direction": "sent"}).
+        search: Optional search term.
+        page: Optional page number.
+        page_size: Optional number of items per page.
+        filters: Optional dictionary of query filters.
 
     Returns:
         A dictionary containing a list of activities or an error message.
@@ -951,10 +1011,15 @@ async def list_activities(filters: Optional[Dict] = None) -> Dict:
         raise Exception("User not authenticated")
 
     try:
-        if filters:
-            tool_output = await tu.list_activities(**filters)
-        else:
-            tool_output = await tu.list_activities()
+        all_filters = filters or {}
+        if search:
+            all_filters["search"] = search
+        if page:
+            all_filters["page"] = page
+        if page_size:
+            all_filters["page_size"] = page_size
+
+        tool_output = await tu.list_activities(**all_filters)
         return {
             "results": tool_output,
             "user_id": user_info.get("id"),

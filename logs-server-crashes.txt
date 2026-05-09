@@ -1,0 +1,149 @@
+ounderstack-crm-mcp  | INFO:     Started server process [1]
+founderstack-crm-mcp  | INFO:     Waiting for application startup.
+founderstack-crm-mcp  | INFO:     Application startup complete.
+founderstack-crm-mcp  | INFO:     Uvicorn running on http://0.0.0.0:8081 (Press CTRL+C to quit)
+founderstack-crm-mcp  | INFO:     172.26.0.1:38570 - "OPTIONS /mcp/ HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:38580 - "POST /mcp/ HTTP/1.0" 401 Unauthorized
+founderstack-crm-mcp  | INFO:     172.26.0.1:38584 - "POST /mcp/ HTTP/1.0" 401 Unauthorized
+founderstack-crm-mcp  | INFO:     172.26.0.1:38598 - "OPTIONS /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:38606 - "GET /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:38608 - "GET /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:38610 - "OPTIONS /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:38618 - "GET /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:38622 - "GET /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:38636 - "GET /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:38648 - "GET /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:38656 - "GET /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:38664 - "GET /oauth2/authorize?response_type=code&client_id=mcp_client_7181ebfbeba44d73&code_challenge=gKnhIqE_vSb1wRgoAnbLIiFhXEGWL4qIHwWgkwexgwY&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A6274%2Foauth%2Fcallback&state=5e68e27a1ae44d66aedb45987491a1ae4ee942b74d568d0ac5c8f8ee2a72600c&scope=openid+profile+email&resource=https%3A%2F%2Fmcp.crm.founderstack.cloud%2Fmcp%2F HTTP/1.0" 302 Found
+founderstack-crm-mcp  | INFO:     172.26.0.1:38678 - "GET /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:38680 - "GET /oauth2/authorize?response_type=code&client_id=mcp_client_7181ebfbeba44d73&code_challenge=bAgpfFlvm24wh7mmbBWYCgFhljtoczDMDkCzgU-L5_o&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A6274%2Foauth%2Fcallback&state=cd349e07df6395596486fb12098ec54f6da0145388b043dbce3e8f1300396eb0&scope=openid+profile+email&resource=https%3A%2F%2Fmcp.crm.founderstack.cloud%2Fmcp%2F HTTP/1.0" 302 Found
+founderstack-crm-mcp  | INFO:     172.26.0.1:57256 - "GET /oauth2/callback?auth_id=G-ZUwfEK9WxHVVpdNYxu0Q&token=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc4NzM3Nzg4LCJpYXQiOjE3NzgxMzI5ODgsImp0aSI6Ijg2ZDc1OTRlNTYzYjRlZWI4NTNkN2RlYTZlMGMwNzEwIiwidXNlcl9pZCI6IjEiLCJhdWQiOiJjY2NybS1hcGkiLCJpc3MiOiJjY2NybS1iYWNrZW5kIn0.IncsBafh1NViMfiAZKIAe52MxGE6DvAVkzgeBhjM0QmEXDyiFjGZ58PzOARzNoq0Sgb-ZMxB0A5zd2_rjQDMd1Zd_QAE8PhxR9YVIxnKzoOu9yoT5UrxmT_PQrx3tC2WCYXFyzL3VWAXm_PUlj40wms5E7Zp6nJmLptK6kYvRTWWD3q5TmJaQdCezD7SyZFmDs8VapRVSTqNbYbvzg24UsrVZuS7r30gDEHskk9oawuJM4CAp6GIe8yI2CxXgUYzagmlDjp3SKg71aHN2t70BV4Rs7P8L8RotVTqTaDJKK7ZK2itdWzuVo0FT0rIcIoEQnMmssUuPBRZnKMXz-8WyA&state=cd349e07df6395596486fb12098ec54f6da0145388b043dbce3e8f1300396eb0 HTTP/1.0" 302 Found
+founderstack-crm-mcp  | INFO:     172.26.0.1:57258 - "GET /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:57272 - "GET /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:36706 - "POST /oauth2/token HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:36708 - "POST /mcp/ HTTP/1.0" 401 Unauthorized
+founderstack-crm-mcp  | INFO:     172.26.0.1:36716 - "GET /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:36720 - "GET /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:36734 - "GET /oauth2/authorize?response_type=code&client_id=mcp_client_7181ebfbeba44d73&code_challenge=L9nFYx-WhwoQD1_sPTC8x3vCRceB42WsVtdMyulBXUE&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A6274%2Foauth%2Fcallback&state=4bca16063f14f1c3679f133fa3f50933ffe3e41af1d604df2f92f5148cd3d1f4&scope=openid+profile+email+mcp%3Atools&resource=https%3A%2F%2Fmcp.crm.founderstack.cloud%2Fmcp%2F HTTP/1.0" 302 Found
+founderstack-crm-mcp  | INFO:     172.26.0.1:36742 - "GET /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:36758 - "GET /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:36772 - "POST /mcp/ HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:36778 - "POST /mcp/ HTTP/1.0" 202 Accepted
+founderstack-crm-mcp  | INFO:     172.26.0.1:36780 - "POST /mcp/ HTTP/1.0" 200 OK
+founderstack-crm-mcp  | [05/07/26 05:49:59] Error validating tool 'list_people'
+founderstack-crm-mcp  |                     ╭─────────── Traceback (most recent call last) ────────────╮
+founderstack-crm-mcp  |                     │ /opt/venv/lib/python3.11/site-packages/fastmcp/server/se │
+founderstack-crm-mcp  |                     │ rver.py:1240 in call_tool                                │
+founderstack-crm-mcp  |                     │                                                          │
+founderstack-crm-mcp  |                     │ /opt/venv/lib/python3.11/site-packages/fastmcp/tools/bas │
+founderstack-crm-mcp  |                     │ e.py:377 in _run                                         │
+founderstack-crm-mcp  |                     │                                                          │
+founderstack-crm-mcp  |                     │ /opt/venv/lib/python3.11/site-packages/fastmcp/tools/fun │
+founderstack-crm-mcp  |                     │ ction_tool.py:278 in run                                 │
+founderstack-crm-mcp  |                     │                                                          │
+founderstack-crm-mcp  |                     │ /opt/venv/lib/python3.11/site-packages/pydantic/type_ada │
+founderstack-crm-mcp  |                     │ pter.py:441 in validate_python                           │
+founderstack-crm-mcp  |                     ╰──────────────────────────────────────────────────────────╯
+founderstack-crm-mcp  |                     ValidationError: 2 validation errors for call[list_people]
+founderstack-crm-mcp  |                     page
+founderstack-crm-mcp  |                       Unexpected keyword argument
+founderstack-crm-mcp  |                     [type=unexpected_keyword_argument, input_value=1,
+founderstack-crm-mcp  |                     input_type=int]
+founderstack-crm-mcp  |                         For further information visit
+founderstack-crm-mcp  |                     https://errors.pydantic.dev/2.13/v/unexpected_keyword_argume
+founderstack-crm-mcp  |                     nt
+founderstack-crm-mcp  |                     page_size
+founderstack-crm-mcp  |                       Unexpected keyword argument
+founderstack-crm-mcp  |                     [type=unexpected_keyword_argument, input_value=1,
+founderstack-crm-mcp  |                     input_type=int]
+founderstack-crm-mcp  |                         For further information visit
+founderstack-crm-mcp  |                     https://errors.pydantic.dev/2.13/v/unexpected_keyword_argume
+founderstack-crm-mcp  |                     nt
+founderstack-crm-mcp  |                     Error validating tool 'call_tool'
+founderstack-crm-mcp  |                     ╭─────────── Traceback (most recent call last) ────────────╮
+founderstack-crm-mcp  |                     │ /opt/venv/lib/python3.11/site-packages/fastmcp/server/se │
+founderstack-crm-mcp  |                     │ rver.py:1240 in call_tool                                │
+founderstack-crm-mcp  |                     │                                                          │
+founderstack-crm-mcp  |                     │ /opt/venv/lib/python3.11/site-packages/fastmcp/tools/bas │
+founderstack-crm-mcp  |                     │ e.py:377 in _run                                         │
+founderstack-crm-mcp  |                     │                                                          │
+founderstack-crm-mcp  |                     │                 ... 11 frames hidden ...                 │
+founderstack-crm-mcp  |                     │                                                          │
+founderstack-crm-mcp  |                     │ /opt/venv/lib/python3.11/site-packages/fastmcp/tools/fun │
+founderstack-crm-mcp  |                     │ ction_tool.py:278 in run                                 │
+founderstack-crm-mcp  |                     │                                                          │
+founderstack-crm-mcp  |                     │ /opt/venv/lib/python3.11/site-packages/pydantic/type_ada │
+founderstack-crm-mcp  |                     │ pter.py:441 in validate_python                           │
+founderstack-crm-mcp  |                     ╰──────────────────────────────────────────────────────────╯
+founderstack-crm-mcp  |                     ValidationError: 2 validation errors for call[list_people]
+founderstack-crm-mcp  |                     page
+founderstack-crm-mcp  |                       Unexpected keyword argument
+founderstack-crm-mcp  |                     [type=unexpected_keyword_argument, input_value=1,
+founderstack-crm-mcp  |                     input_type=int]
+founderstack-crm-mcp  |                         For further information visit
+founderstack-crm-mcp  |                     https://errors.pydantic.dev/2.13/v/unexpected_keyword_argume
+founderstack-crm-mcp  |                     nt
+founderstack-crm-mcp  |                     page_size
+founderstack-crm-mcp  |                       Unexpected keyword argument
+founderstack-crm-mcp  |                     [type=unexpected_keyword_argument, input_value=1,
+founderstack-crm-mcp  |                     input_type=int]
+founderstack-crm-mcp  |                         For further information visit
+founderstack-crm-mcp  |                     https://errors.pydantic.dev/2.13/v/unexpected_keyword_argume
+founderstack-crm-mcp  |                     nt
+founderstack-crm-mcp  | INFO:     172.26.0.1:36788 - "POST /mcp/ HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:36800 - "GET /oauth2/callback?auth_id=Rs2gTKFlGWw7GU5A5Zt1gQ&token=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc4NzM3Nzg4LCJpYXQiOjE3NzgxMzI5ODgsImp0aSI6Ijg2ZDc1OTRlNTYzYjRlZWI4NTNkN2RlYTZlMGMwNzEwIiwidXNlcl9pZCI6IjEiLCJhdWQiOiJjY2NybS1hcGkiLCJpc3MiOiJjY2NybS1iYWNrZW5kIn0.IncsBafh1NViMfiAZKIAe52MxGE6DvAVkzgeBhjM0QmEXDyiFjGZ58PzOARzNoq0Sgb-ZMxB0A5zd2_rjQDMd1Zd_QAE8PhxR9YVIxnKzoOu9yoT5UrxmT_PQrx3tC2WCYXFyzL3VWAXm_PUlj40wms5E7Zp6nJmLptK6kYvRTWWD3q5TmJaQdCezD7SyZFmDs8VapRVSTqNbYbvzg24UsrVZuS7r30gDEHskk9oawuJM4CAp6GIe8yI2CxXgUYzagmlDjp3SKg71aHN2t70BV4Rs7P8L8RotVTqTaDJKK7ZK2itdWzuVo0FT0rIcIoEQnMmssUuPBRZnKMXz-8WyA&state=4bca16063f14f1c3679f133fa3f50933ffe3e41af1d604df2f92f5148cd3d1f4 HTTP/1.0" 302 Found
+founderstack-crm-mcp  | INFO:     172.26.0.1:36802 - "GET /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:58896 - "GET /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:58908 - "POST /oauth2/token HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:58924 - "POST /mcp/ HTTP/1.0" 401 Unauthorized
+founderstack-crm-mcp  | INFO:     172.26.0.1:58926 - "GET /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:58928 - "GET /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:58940 - "GET /oauth2/authorize?response_type=code&client_id=mcp_client_7181ebfbeba44d73&code_challenge=m1jB5X0OcRm0Pv27jSvgDDOmrxKwwyK8d0wJRZnFjRs&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A6274%2Foauth%2Fcallback&state=4d365aa02994501debd7f1f9ba5c75603735ce643fd9a17d332d505dfc7461ce&scope=openid+profile+email+mcp%3Atools&resource=https%3A%2F%2Fmcp.crm.founderstack.cloud%2Fmcp%2F HTTP/1.0" 302 Found
+founderstack-crm-mcp  | INFO:     172.26.0.1:58952 - "GET /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:58966 - "GET /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:58972 - "GET /oauth2/authorize?response_type=code&client_id=mcp_client_7181ebfbeba44d73&code_challenge=Z-UhF9EptaXDaQsZPgNkxMK7qRQ_G9zqgLzRaR8nO2c&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A6274%2Foauth%2Fcallback&state=a306e89d3c8b50782e6619d79f6ebbc5c1efe805d4d5b4cc95edffd4b87ae028&scope=openid+profile+email&resource=https%3A%2F%2Fmcp.crm.founderstack.cloud%2Fmcp%2F HTTP/1.0" 302 Found
+founderstack-crm-mcp  | INFO:     172.26.0.1:39532 - "POST /mcp/ HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:43828 - "POST /mcp/ HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:43840 - "POST /mcp/ HTTP/1.0" 202 Accepted
+founderstack-crm-mcp  | INFO:     172.26.0.1:43848 - "POST /mcp/ HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:48930 - "POST /mcp/ HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:48936 - "POST /mcp/ HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:34666 - "POST /mcp/ HTTP/1.0" 401 Unauthorized
+founderstack-crm-mcp  | INFO:     172.26.0.1:34674 - "GET /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:34686 - "GET /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:34690 - "GET /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:34694 - "GET /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:34696 - "GET /oauth2/authorize?response_type=code&client_id=mcp_client_7181ebfbeba44d73&code_challenge=vHL4rfncmJmMNqHdadS5prr51jnwRWYUdvTwOevGsWs&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A6274%2Foauth%2Fcallback&state=adab2cd17606f724210942a5ea7d8076b43272331f62e460ec6383524b6aa5eb&scope=openid+profile+email+mcp%3Atools&resource=https%3A%2F%2Fmcp.crm.founderstack.cloud%2Fmcp%2F HTTP/1.0" 302 Found
+founderstack-crm-mcp  | INFO:     172.26.0.1:34702 - "GET /oauth2/authorize?response_type=code&client_id=mcp_client_7181ebfbeba44d73&code_challenge=xkM1Nv0imyC4KkIaY1fYPLcUbCTb_DnjI2_2t-5DR9k&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A6274%2Foauth%2Fcallback&state=29de84184ef491cf4fc1fd947f5ac78075d7cd809d3aa050b0fabf7f33d0d36c&scope=openid+profile+email&resource=https%3A%2F%2Fmcp.crm.founderstack.cloud%2Fmcp%2F HTTP/1.0" 302 Found
+founderstack-crm-mcp  | INFO:     172.26.0.1:56966 - "GET /oauth2/callback?auth_id=bdPjMdSVlah_GSg9WqPCYg&token=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc4NzM3Nzg4LCJpYXQiOjE3NzgxMzI5ODgsImp0aSI6Ijg2ZDc1OTRlNTYzYjRlZWI4NTNkN2RlYTZlMGMwNzEwIiwidXNlcl9pZCI6IjEiLCJhdWQiOiJjY2NybS1hcGkiLCJpc3MiOiJjY2NybS1iYWNrZW5kIn0.IncsBafh1NViMfiAZKIAe52MxGE6DvAVkzgeBhjM0QmEXDyiFjGZ58PzOARzNoq0Sgb-ZMxB0A5zd2_rjQDMd1Zd_QAE8PhxR9YVIxnKzoOu9yoT5UrxmT_PQrx3tC2WCYXFyzL3VWAXm_PUlj40wms5E7Zp6nJmLptK6kYvRTWWD3q5TmJaQdCezD7SyZFmDs8VapRVSTqNbYbvzg24UsrVZuS7r30gDEHskk9oawuJM4CAp6GIe8yI2CxXgUYzagmlDjp3SKg71aHN2t70BV4Rs7P8L8RotVTqTaDJKK7ZK2itdWzuVo0FT0rIcIoEQnMmssUuPBRZnKMXz-8WyA&state=29de84184ef491cf4fc1fd947f5ac78075d7cd809d3aa050b0fabf7f33d0d36c HTTP/1.0" 302 Found
+founderstack-crm-mcp  | INFO:     172.26.0.1:56974 - "GET /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:56986 - "GET /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:56990 - "POST /oauth2/token HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:56996 - "POST /mcp/ HTTP/1.0" 401 Unauthorized
+founderstack-crm-mcp  | INFO:     172.26.0.1:57004 - "GET /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:57016 - "GET /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:57020 - "GET /oauth2/authorize?response_type=code&client_id=mcp_client_7181ebfbeba44d73&code_challenge=EGzhJQqkQdHVOMlZQP7RIVih3mmC1879u80dbfQCtQY&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A6274%2Foauth%2Fcallback&state=d10ed7726df0aec136b9249be78a3a3f54a77fb3ef798ade54989d798ddd5fff&scope=openid+profile+email+mcp%3Atools&resource=https%3A%2F%2Fmcp.crm.founderstack.cloud%2Fmcp%2F HTTP/1.0" 302 Found
+founderstack-crm-mcp  | INFO:     172.26.0.1:57036 - "GET /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:57038 - "GET /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:49668 - "POST /mcp/ HTTP/1.0" 401 Unauthorized
+founderstack-crm-mcp  | INFO:     172.26.0.1:49682 - "GET /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:49692 - "GET /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:49704 - "GET /oauth2/authorize?response_type=code&client_id=mcp_client_7181ebfbeba44d73&code_challenge=WLxBqila3YNODzsNLc1ikXrxjHS-vJI3WrI4MBLiaac&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A6274%2Foauth%2Fcallback&state=0c5ac5873debacd56db3ff0a70124389d708b65334e49137b7347a0baa7dd8de&scope=openid+profile+email+mcp%3Atools&resource=https%3A%2F%2Fmcp.crm.founderstack.cloud%2Fmcp%2F HTTP/1.0" 302 Found
+founderstack-crm-mcp  | INFO:     172.26.0.1:49720 - "GET /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:49734 - "GET /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:38088 - "GET /oauth2/authorize?response_type=code&client_id=mcp_client_7181ebfbeba44d73&code_challenge=L_e6Rh2HBu8um8vJfJ5drd7iF_AglfIcFCCv94lt8dA&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A6274%2Foauth%2Fcallback&state=abc054eaa30094739512d4e5f28fa45d83e7f8da92de1dff093611b72624b1d8&scope=openid+profile+email&resource=https%3A%2F%2Fmcp.crm.founderstack.cloud%2Fmcp%2F HTTP/1.0" 302 Found
+founderstack-crm-mcp  | INFO:     172.26.0.1:36980 - "GET /oauth2/callback?auth_id=JrBcAGPynii5GIe1IwpMZg&token=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc4NzM3Nzg4LCJpYXQiOjE3NzgxMzI5ODgsImp0aSI6Ijg2ZDc1OTRlNTYzYjRlZWI4NTNkN2RlYTZlMGMwNzEwIiwidXNlcl9pZCI6IjEiLCJhdWQiOiJjY2NybS1hcGkiLCJpc3MiOiJjY2NybS1iYWNrZW5kIn0.IncsBafh1NViMfiAZKIAe52MxGE6DvAVkzgeBhjM0QmEXDyiFjGZ58PzOARzNoq0Sgb-ZMxB0A5zd2_rjQDMd1Zd_QAE8PhxR9YVIxnKzoOu9yoT5UrxmT_PQrx3tC2WCYXFyzL3VWAXm_PUlj40wms5E7Zp6nJmLptK6kYvRTWWD3q5TmJaQdCezD7SyZFmDs8VapRVSTqNbYbvzg24UsrVZuS7r30gDEHskk9oawuJM4CAp6GIe8yI2CxXgUYzagmlDjp3SKg71aHN2t70BV4Rs7P8L8RotVTqTaDJKK7ZK2itdWzuVo0FT0rIcIoEQnMmssUuPBRZnKMXz-8WyA&state=abc054eaa30094739512d4e5f28fa45d83e7f8da92de1dff093611b72624b1d8 HTTP/1.0" 302 Found
+founderstack-crm-mcp  | INFO:     172.26.0.1:36994 - "GET /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:36996 - "GET /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:36998 - "POST /oauth2/token HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:37006 - "POST /mcp/ HTTP/1.0" 401 Unauthorized
+founderstack-crm-mcp  | INFO:     172.26.0.1:37010 - "GET /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:37026 - "GET /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:37034 - "GET /oauth2/authorize?response_type=code&client_id=mcp_client_7181ebfbeba44d73&code_challenge=QQ-aNJKk0vRpZyDxxR9OYi3BSX78tW7ErSYalAff8kU&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A6274%2Foauth%2Fcallback&state=77c7005ea032fe2434d1b32b598532a1f8cb511444725c3b7efc9a0c9e65d27c&scope=openid+profile+email+mcp%3Atools&resource=https%3A%2F%2Fmcp.crm.founderstack.cloud%2Fmcp%2F HTTP/1.0" 302 Found
+founderstack-crm-mcp  | INFO:     172.26.0.1:37046 - "GET /.well-known/oauth-protected-resource/mcp HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:37062 - "GET /.well-known/oauth-authorization-server HTTP/1.0" 200 OK
+founderstack-crm-mcp  | INFO:     172.26.0.1:37078 - "GET /oauth2/authorize?response_type=code&client_id=mcp_client_7181ebfbeba44d73&code_challenge=_Uba3BL2CkKhqOIaowAv_KqTrWQDHAWMiO1U45eXUag&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A6274%2Foauth%2Fcallback&state=25ecf9f73f797b95c581c996e1203f6d81787d312c5ce2b86bf417b7c023f459&scope=openid+profile+email&resource=https%3A%2F%2Fmcp.crm.founderstack.cloud%2Fmcp%2F HTTP/1.0" 302 Found
+founderstack-crm-mcp  | INFO:     Shutting down
+founderstack-crm-mcp  | INFO:     Waiting for application shutdown.
+founderstack-crm-mcp  | INFO:     Application shutdown complete.
+founderstack-crm-mcp  | INFO:     Finished server process [1]

@@ -37,8 +37,31 @@ class DynamicCORSMiddleware(CORSMiddleware):
 # Create MCP server first
 mcp_server = tools_server.http_app(path="/", stateless_http=True)
 
-# Create FastAPI app with MCP lifespan (required for FastMCP 3.0)
-app = FastAPI(lifespan=mcp_server.lifespan)
+@contextlib.asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Lifespan context manager for the FastAPI app.
+    Starts background tasks and manages MCP server lifespan.
+    """
+    logger.info("Application starting up...")
+    # Start background tasks
+    cleanup_task = asyncio.create_task(cleanup_expired())
+
+    try:
+        # Run MCP server lifespan (required for FastMCP 3.0)
+        async with mcp_server.lifespan(app):
+            yield
+    finally:
+        logger.info("Application shutting down...")
+        # Clean up background tasks
+        cleanup_task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await cleanup_task
+        logger.info("Application shutdown complete.")
+
+
+# Create FastAPI app with combined lifespan
+app = FastAPI(lifespan=lifespan)
 
 
 # ── Security Headers ──────────────────────────────────────────────────────
