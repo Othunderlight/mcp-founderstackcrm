@@ -1,20 +1,49 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
+from urllib.parse import parse_qs, urlparse
 
 from toon import encode
 
 from .tools import make_django_request
 
 
+def get_page_number(url: Optional[str]) -> Optional[int]:
+    """Extract page number from a URL."""
+    if not url:
+        return None
+    try:
+        parsed = urlparse(url)
+        qs = parse_qs(parsed.query)
+        page = qs.get("page")
+        return int(page[0]) if page else None
+    except (ValueError, IndexError):
+        return None
+
+
+def format_paginated_response(response: Any, key: str) -> Dict:
+    """Format a Django response, handling both paginated and non-paginated data."""
+    if isinstance(response, dict) and "results" in response:
+        count = response.get("count", 0)
+        results = response.get("results", [])
+        return {
+            key: encode(results),
+            "pagination": {
+                "showing": f"{len(results)} of {count}",
+                "next_page": get_page_number(response.get("next")),
+                "previous_page": get_page_number(response.get("previous")),
+            },
+        }
+    return {key: encode(response)}
+
+
 async def list_companies(**filters) -> Dict:
     """List/search companies."""
     try:
-        companies = await make_django_request(
+        response = await make_django_request(
             "/api/companies/", "GET", params=filters if filters else None
         )
-        return {
-            "companies": encode(companies),
-            "message": "Companies retrieved successfully",
-        }
+        result = format_paginated_response(response, "companies")
+        result["message"] = "Companies retrieved successfully"
+        return result
     except Exception as e:
         return {"error": str(e), "message": "Failed to retrieve companies"}
 
@@ -72,10 +101,12 @@ async def import_companies(companies: list[Dict]) -> Dict:
 async def list_notes(**filters) -> Dict:
     """List/search notes."""
     try:
-        notes = await make_django_request(
+        response = await make_django_request(
             "/api/notes/", "GET", params=filters if filters else None
         )
-        return {"notes": encode(notes), "message": "Notes retrieved successfully"}
+        result = format_paginated_response(response, "notes")
+        result["message"] = "Notes retrieved successfully"
+        return result
     except Exception as e:
         return {"error": str(e), "message": "Failed to retrieve notes"}
 
@@ -127,12 +158,14 @@ async def import_notes(notes: list[Dict]) -> Dict:
 
 # People
 async def list_people(**filters) -> Dict:
-    """List/search people."""
+    """List people."""
     try:
-        people = await make_django_request(
+        response = await make_django_request(
             "/api/people/", "GET", params=filters if filters else None
         )
-        return {"people": encode(people), "message": "People retrieved successfully"}
+        result = format_paginated_response(response, "people")
+        result["message"] = "People retrieved successfully"
+        return result
     except Exception as e:
         return {"error": str(e), "message": "Failed to retrieve people"}
 
@@ -203,11 +236,17 @@ async def import_people(people: list[Dict], auto_create_company: bool = False) -
 
 
 # Search
-async def global_search(q: str) -> Dict:
+async def global_search(q: str, **filters) -> Dict:
     """Perform a global search across People, Companies, Tasks, and Notes."""
     try:
-        results = await make_django_request("/api/search/", "GET", params={"q": q})
-        return {"results": encode(results), "message": "Search completed successfully"}
+        params = {"q": q}
+        if filters:
+            params.update(filters)
+        response = await make_django_request("/api/search/", "GET", params=params)
+        # Search results might also be paginated
+        result = format_paginated_response(response, "results")
+        result["message"] = "Search completed successfully"
+        return result
     except Exception as e:
         return {"error": str(e), "message": "Failed to perform search"}
 
@@ -216,10 +255,12 @@ async def global_search(q: str) -> Dict:
 async def list_tasks(**filters) -> Dict:
     """List/search tasks."""
     try:
-        tasks = await make_django_request(
+        response = await make_django_request(
             "/api/tasks/", "GET", params=filters if filters else None
         )
-        return {"tasks": encode(tasks), "message": "Tasks retrieved successfully"}
+        result = format_paginated_response(response, "tasks")
+        result["message"] = "Tasks retrieved successfully"
+        return result
     except Exception as e:
         return {"error": str(e), "message": "Failed to retrieve tasks"}
 
@@ -279,13 +320,12 @@ async def import_tasks(
 async def list_activities(**filters) -> Dict:
     """List/search activities."""
     try:
-        activities = await make_django_request(
+        response = await make_django_request(
             "/api/activities/", "GET", params=filters if filters else None
         )
-        return {
-            "activities": encode(activities),
-            "message": "Activities retrieved successfully",
-        }
+        result = format_paginated_response(response, "activities")
+        result["message"] = "Activities retrieved successfully"
+        return result
     except Exception as e:
         return {"error": str(e), "message": "Failed to retrieve activities"}
 
@@ -363,13 +403,12 @@ async def import_activities(
 async def list_interaction_types(**filters) -> Dict:
     """List/search interaction types."""
     try:
-        types = await make_django_request(
+        response = await make_django_request(
             "/api/interaction-types/", "GET", params=filters if filters else None
         )
-        return {
-            "interaction_types": encode(types),
-            "message": "Interaction types retrieved successfully",
-        }
+        result = format_paginated_response(response, "interaction_types")
+        result["message"] = "Interaction types retrieved successfully"
+        return result
     except Exception as e:
         return {"error": str(e), "message": "Failed to retrieve interaction types"}
 
@@ -434,13 +473,12 @@ async def delete_interaction_type(type_id: str) -> Dict:
 async def list_interactions(**filters) -> Dict:
     """List/search interactions."""
     try:
-        interactions = await make_django_request(
+        response = await make_django_request(
             "/api/interactions/", "GET", params=filters if filters else None
         )
-        return {
-            "interactions": encode(interactions),
-            "message": "Interactions retrieved successfully",
-        }
+        result = format_paginated_response(response, "interactions")
+        result["message"] = "Interactions retrieved successfully"
+        return result
     except Exception as e:
         return {"error": str(e), "message": "Failed to retrieve interactions"}
 

@@ -106,9 +106,8 @@ async def make_django_request(
         logger.error(f"Request to Django failed: {e}")
         raise Exception(f"Request to Django backend failed: {str(e)}")
 
-
-# @mcp.tool()
-# async def get_user_profile() -> Dict:
+    # @mcp.tool()
+    # async def get_user_profile() -> Dict:
     """Get the current authenticated user's profile information"""
     user_info = get_current_user()
     if not user_info:
@@ -143,9 +142,8 @@ async def make_django_request(
 async def tool_function(args):
     return "Example Tool Call"
 
-
-# @mcp.tool()
-# async def example_tool() -> Dict:
+    # @mcp.tool()
+    # async def example_tool() -> Dict:
     """
     What does the tool do
 
@@ -227,20 +225,18 @@ from . import tools_utils as tu
 async def list_companies(
     search: Optional[str] = None,
     page: Optional[int] = None,
-    page_size: Optional[int] = None,
     filters: Optional[Dict] = None,
 ) -> Dict:
     """
-    Lists all companies for the authenticated user, with optional filters.
+    Lists all companies for the authenticated user, with optional filters and pagination.
 
     Args:
         search: Optional search term.
         page: Optional page number.
-        page_size: Optional number of items per page.
         filters: Optional dictionary of additional query filters.
 
     Returns:
-        A dictionary containing a list of companies or an error message.
+        A dictionary containing a list of companies and pagination metadata.
     """
     user_info = get_current_user()
     if not user_info:
@@ -252,8 +248,6 @@ async def list_companies(
             all_filters["search"] = search
         if page:
             all_filters["page"] = page
-        if page_size:
-            all_filters["page_size"] = page_size
 
         tool_output = await tu.list_companies(**all_filters)
         return {
@@ -343,9 +337,8 @@ async def update_company(company_id: str, data: Dict) -> Dict:
     except Exception as e:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
-
-# @mcp.tool()
-# async def delete_company(company_id: str) -> Dict:
+    # @mcp.tool()
+    # async def delete_company(company_id: str) -> Dict:
     """
     Deletes a company.
 
@@ -369,9 +362,8 @@ async def update_company(company_id: str, data: Dict) -> Dict:
     except Exception as e:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
-
-# @mcp.tool()
-# async def import_companies(companies: List[Dict]) -> Dict:
+    # @mcp.tool()
+    # async def import_companies(companies: List[Dict]) -> Dict:
     """
     Bulk imports companies.
 
@@ -403,20 +395,18 @@ async def update_company(company_id: str, data: Dict) -> Dict:
 async def list_notes(
     search: Optional[str] = None,
     page: Optional[int] = None,
-    page_size: Optional[int] = None,
     filters: Optional[Dict] = None,
 ) -> Dict:
     """
-    Lists all notes for the authenticated user, with optional filters.
+    Lists all notes for the authenticated user, with optional filters and pagination.
 
     Args:
         search: Optional search term.
         page: Optional page number.
-        page_size: Optional number of items per page.
         filters: Optional dictionary of query filters.
 
     Returns:
-        A dictionary containing a list of notes or an error message.
+        A dictionary containing a list of notes and pagination metadata.
     """
     user_info = get_current_user()
     if not user_info:
@@ -428,8 +418,6 @@ async def list_notes(
             all_filters["search"] = search
         if page:
             all_filters["page"] = page
-        if page_size:
-            all_filters["page_size"] = page_size
 
         tool_output = await tu.list_notes(**all_filters)
         return {
@@ -440,9 +428,8 @@ async def list_notes(
     except Exception as e:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
-
-# @mcp.tool()
-# async def get_note(note_id: str) -> Dict:
+    # @mcp.tool()
+    # async def get_note(note_id: str) -> Dict:
     """
     Retrieves a specific note by ID.
 
@@ -519,9 +506,8 @@ async def update_note(note_id: str, data: Dict) -> Dict:
     except Exception as e:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
-
-# @mcp.tool()
-# async def delete_note(note_id: str) -> Dict:
+    # @mcp.tool()
+    # async def delete_note(note_id: str) -> Dict:
     """
     Deletes a note.
 
@@ -545,9 +531,8 @@ async def update_note(note_id: str, data: Dict) -> Dict:
     except Exception as e:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
-
-# @mcp.tool()
-# async def import_notes(notes: List[Dict]) -> Dict:
+    # @mcp.tool()
+    # async def import_notes(notes: List[Dict]) -> Dict:
     """
     Bulk imports notes.
 
@@ -579,20 +564,18 @@ async def update_note(note_id: str, data: Dict) -> Dict:
 async def list_people(
     search: Optional[str] = None,
     page: Optional[int] = None,
-    page_size: Optional[int] = None,
     filters: Optional[Dict] = None,
 ) -> Dict:
     """
-    Lists all people for the authenticated user, with optional filters.
+    Lists all people for the authenticated user, with optional filters and pagination.
 
     Args:
         search: Optional search term.
         page: Optional page number.
-        page_size: Optional number of items per page.
         filters: Optional dictionary of query filters.
 
     Returns:
-        A dictionary containing a list of people or an error message.
+        A dictionary containing a list of people and pagination metadata.
     """
     user_info = get_current_user()
     if not user_info:
@@ -604,8 +587,6 @@ async def list_people(
             all_filters["search"] = search
         if page:
             all_filters["page"] = page
-        if page_size:
-            all_filters["page_size"] = page_size
 
         tool_output = await tu.list_people(**all_filters)
         return {
@@ -616,9 +597,8 @@ async def list_people(
     except Exception as e:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
-
-# @mcp.tool()
-# async def get_person(person_id: str) -> Dict:
+    # @mcp.tool()
+    # async def get_person(person_id: str) -> Dict:
     """
     Retrieves a specific person by ID.
 
@@ -722,9 +702,8 @@ async def update_person(person_id: str, data: Dict) -> Dict:
     except Exception as e:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
-
-# @mcp.tool()
-# async def delete_person(person_id: str) -> Dict:
+    # @mcp.tool()
+    # async def delete_person(person_id: str) -> Dict:
     """
     Deletes a person.
 
@@ -748,9 +727,8 @@ async def update_person(person_id: str, data: Dict) -> Dict:
     except Exception as e:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
-
-# @mcp.tool()
-# async def import_people(people: List[Dict], auto_create_company: bool = False) -> Dict:
+    # @mcp.tool()
+    # async def import_people(people: List[Dict], auto_create_company: bool = False) -> Dict:
     """
     Bulk imports people.
 
@@ -780,22 +758,27 @@ async def update_person(person_id: str, data: Dict) -> Dict:
 
 
 @mcp.tool()
-async def global_search(q: str) -> Dict:
+async def global_search(q: str, page: Optional[int] = None) -> Dict:
     """
     Performs a global search across People, Companies, Tasks, and Notes.
 
     Args:
         q: The search query string.
+        page: Optional page number for pagination.
 
     Returns:
-        A dictionary containing relevance-scored results from all models or an error message.
+        A dictionary containing relevance-scored results and pagination metadata.
     """
     user_info = get_current_user()
     if not user_info:
         raise Exception("User not authenticated")
 
     try:
-        tool_output = await tu.global_search(q)
+        filters = {}
+        if page:
+            filters["page"] = page
+
+        tool_output = await tu.global_search(q, **filters)
         return {
             "results": tool_output,
             "user_id": user_info.get("id"),
@@ -812,20 +795,18 @@ async def global_search(q: str) -> Dict:
 async def list_tasks(
     search: Optional[str] = None,
     page: Optional[int] = None,
-    page_size: Optional[int] = None,
     filters: Optional[Dict] = None,
 ) -> Dict:
     """
-    Lists all tasks for the authenticated user, with optional filters.
+    Lists all tasks for the authenticated user, with optional filters and pagination.
 
     Args:
         search: Optional search term.
         page: Optional page number.
-        page_size: Optional number of items per page.
         filters: Optional dictionary of query filters.
 
     Returns:
-        A dictionary containing a list of tasks or an error message.
+        A dictionary containing a list of tasks and pagination metadata.
     """
     user_info = get_current_user()
     if not user_info:
@@ -837,8 +818,6 @@ async def list_tasks(
             all_filters["search"] = search
         if page:
             all_filters["page"] = page
-        if page_size:
-            all_filters["page_size"] = page_size
 
         tool_output = await tu.list_tasks(**all_filters)
         return {
@@ -849,9 +828,8 @@ async def list_tasks(
     except Exception as e:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
-
-# @mcp.tool()
-# async def get_task(task_id: str) -> Dict:
+    # @mcp.tool()
+    # async def get_task(task_id: str) -> Dict:
     """
     Retrieves a specific task by ID.
 
@@ -928,9 +906,8 @@ async def update_task(task_id: str, data: Dict) -> Dict:
     except Exception as e:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
-
-# @mcp.tool()
-# async def delete_task(task_id: str) -> Dict:
+    # @mcp.tool()
+    # async def delete_task(task_id: str) -> Dict:
     """
     Deletes a task.
 
@@ -954,11 +931,10 @@ async def update_task(task_id: str, data: Dict) -> Dict:
     except Exception as e:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
-
-# @mcp.tool()
-# async def import_tasks(
-#     tasks: List[Dict], auto_create_related_person: bool = False
-# ) -> Dict:
+    # @mcp.tool()
+    # async def import_tasks(
+    #     tasks: List[Dict], auto_create_related_person: bool = False
+    # ) -> Dict:
     """
     Bulk imports tasks.
 
@@ -991,20 +967,18 @@ async def update_task(task_id: str, data: Dict) -> Dict:
 async def list_activities(
     search: Optional[str] = None,
     page: Optional[int] = None,
-    page_size: Optional[int] = None,
     filters: Optional[Dict] = None,
 ) -> Dict:
     """
-    Lists all activities for the authenticated user, with optional filters.
+    Lists all activities for the authenticated user, with optional filters and pagination.
 
     Args:
         search: Optional search term.
         page: Optional page number.
-        page_size: Optional number of items per page.
         filters: Optional dictionary of query filters.
 
     Returns:
-        A dictionary containing a list of activities or an error message.
+        A dictionary containing a list of activities and pagination metadata.
     """
     user_info = get_current_user()
     if not user_info:
@@ -1016,8 +990,6 @@ async def list_activities(
             all_filters["search"] = search
         if page:
             all_filters["page"] = page
-        if page_size:
-            all_filters["page_size"] = page_size
 
         tool_output = await tu.list_activities(**all_filters)
         return {
@@ -1055,9 +1027,8 @@ async def create_activity(data: Dict) -> Dict:
     except Exception as e:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
-
-# @mcp.tool()
-# async def get_activity(activity_id: str) -> Dict:
+    # @mcp.tool()
+    # async def get_activity(activity_id: str) -> Dict:
     """
     Retrieves a specific activity by ID.
 
@@ -1108,9 +1079,8 @@ async def update_activity(activity_id: str, data: Dict) -> Dict:
     except Exception as e:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
-
-# @mcp.tool()
-# async def delete_activity(activity_id: str) -> Dict:
+    # @mcp.tool()
+    # async def delete_activity(activity_id: str) -> Dict:
     """
     Deletes an activity.
 
@@ -1134,13 +1104,12 @@ async def update_activity(activity_id: str, data: Dict) -> Dict:
     except Exception as e:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
-
-# @mcp.tool()
-# async def import_activities(
-#     activities: List[Dict],
-#     auto_create_related_person: bool = False,
-#     auto_create_related_company: bool = False,
-# ) -> Dict:
+    # @mcp.tool()
+    # async def import_activities(
+    #     activities: List[Dict],
+    #     auto_create_related_person: bool = False,
+    #     auto_create_related_company: bool = False,
+    # ) -> Dict:
     """
     Bulk imports activities.
 
@@ -1172,26 +1141,31 @@ async def update_activity(activity_id: str, data: Dict) -> Dict:
 # Interaction Types
 
 
-# @mcp.tool()
-# async def list_interaction_types(filters: Optional[Dict] = None) -> Dict:
+@mcp.tool()
+async def list_interaction_types(
+    page: Optional[int] = None,
+    filters: Optional[Dict] = None,
+) -> Dict:
     """
-    Lists all interaction types for the authenticated user, with optional filters.
+    Lists all interaction types for the authenticated user, with optional filters and pagination.
 
     Args:
+        page: Optional page number.
         filters: Optional dictionary of query filters (e.g., {"name__icontains": "call"}).
 
     Returns:
-        A dictionary containing a list of interaction types or an error message.
+        A dictionary containing a list of interaction types and pagination metadata.
     """
     user_info = get_current_user()
     if not user_info:
         raise Exception("User not authenticated")
 
     try:
-        if filters:
-            tool_output = await tu.list_interaction_types(**filters)
-        else:
-            tool_output = await tu.list_interaction_types()
+        all_filters = filters or {}
+        if page:
+            all_filters["page"] = page
+
+        tool_output = await tu.list_interaction_types(**all_filters)
         return {
             "results": tool_output,
             "user_id": user_info.get("id"),
@@ -1226,9 +1200,8 @@ async def create_interaction_type(data: Dict) -> Dict:
     except Exception as e:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
-
-# @mcp.tool()
-# async def get_interaction_type(type_id: str) -> Dict:
+    # @mcp.tool()
+    # async def get_interaction_type(type_id: str) -> Dict:
     """
     Retrieves a specific interaction type by ID.
 
@@ -1279,9 +1252,8 @@ async def update_interaction_type(type_id: str, data: Dict) -> Dict:
     except Exception as e:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
-
-# @mcp.tool()
-# async def delete_interaction_type(type_id: str) -> Dict:
+    # @mcp.tool()
+    # async def delete_interaction_type(type_id: str) -> Dict:
     """
     Deletes an interaction type.
 
@@ -1309,26 +1281,31 @@ async def update_interaction_type(type_id: str, data: Dict) -> Dict:
 # Interactions (Logs)
 
 
-# @mcp.tool()
-# async def list_interactions(filters: Optional[Dict] = None) -> Dict:
+@mcp.tool()
+async def list_interactions(
+    page: Optional[int] = None,
+    filters: Optional[Dict] = None,
+) -> Dict:
     """
-    Lists all interactions for the authenticated user, with optional filters.
+    Lists all interactions for the authenticated user, with optional filters and pagination.
 
     Args:
+        page: Optional page number.
         filters: Optional dictionary of query filters (e.g., {"interaction_type": "TYPE_UUID", "related_person": "PERSON_UUID"}).
 
     Returns:
-        A dictionary containing a list of interactions or an error message.
+        A dictionary containing a list of interactions and pagination metadata.
     """
     user_info = get_current_user()
     if not user_info:
         raise Exception("User not authenticated")
 
     try:
-        if filters:
-            tool_output = await tu.list_interactions(**filters)
-        else:
-            tool_output = await tu.list_interactions()
+        all_filters = filters or {}
+        if page:
+            all_filters["page"] = page
+
+        tool_output = await tu.list_interactions(**all_filters)
         return {
             "results": tool_output,
             "user_id": user_info.get("id"),
@@ -1363,9 +1340,8 @@ async def create_interaction(data: Dict) -> Dict:
     except Exception as e:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
-
-# @mcp.tool()
-# async def get_interaction(interaction_id: str) -> Dict:
+    # @mcp.tool()
+    # async def get_interaction(interaction_id: str) -> Dict:
     """
     Retrieves a specific interaction by ID.
 
@@ -1416,9 +1392,8 @@ async def update_interaction(interaction_id: str, data: Dict) -> Dict:
     except Exception as e:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
-
-# @mcp.tool()
-# async def delete_interaction(interaction_id: str) -> Dict:
+    # @mcp.tool()
+    # async def delete_interaction(interaction_id: str) -> Dict:
     """
     Deletes an interaction.
 
@@ -1442,13 +1417,12 @@ async def update_interaction(interaction_id: str, data: Dict) -> Dict:
     except Exception as e:
         return {"error": str(e), "user_id": user_info.get("id"), "status": "Failed"}
 
-
-# @mcp.tool()
-# async def import_interactions(
-#     interactions: List[Dict],
-#     auto_create_related_person: bool = False,
-#     auto_create_related_company: bool = False,
-# ) -> Dict:
+    # @mcp.tool()
+    # async def import_interactions(
+    #     interactions: List[Dict],
+    #     auto_create_related_person: bool = False,
+    #     auto_create_related_company: bool = False,
+    # ) -> Dict:
     """
     Bulk imports interactions.
 
